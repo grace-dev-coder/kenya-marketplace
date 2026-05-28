@@ -32,7 +32,7 @@ function toggleMobileMenu() {
     
     if (!navLinks || !btn) {
         console.error('Menu elements not found');
-        return;
+        return false;
     }
     
     const isOpen = navLinks.classList.toggle('mobile-open');
@@ -47,13 +47,9 @@ function toggleMobileMenu() {
         }
     }
     
-    // Force styles for mobile
+    // Force display style for mobile
     if (window.innerWidth <= 768) {
-        if (isOpen) {
-            navLinks.style.display = 'flex';
-        } else {
-            navLinks.style.display = 'none';
-        }
+        navLinks.style.display = isOpen ? 'flex' : 'none';
     }
     
     console.log('Menu toggled:', isOpen);
