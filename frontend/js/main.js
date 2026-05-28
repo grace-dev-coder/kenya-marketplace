@@ -26,36 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function toggleMobileMenu() {
-    const navLinks = document.getElementById('navLinks');
-    const btn = document.getElementById('mobileMenuBtn');
-    
-    if (!navLinks || !btn) {
-        console.error('Menu elements not found');
-        return false;
-    }
-    
-    const isOpen = navLinks.classList.toggle('mobile-open');
-    
-    // Update icon
-    const icon = btn.querySelector('i');
-    if (icon) {
-        if (isOpen) {
-            icon.className = 'fas fa-times';
-        } else {
-            icon.className = 'fas fa-bars';
-        }
-    }
-    
-    // Force display style for mobile
-    if (window.innerWidth <= 768) {
-        navLinks.style.display = isOpen ? 'flex' : 'none';
-    }
-    
-    console.log('Menu toggled:', isOpen);
-    return false;
-}
-
 async function loadFeaturedProducts() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/?limit=8`);
