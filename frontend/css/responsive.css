@@ -1,8 +1,16 @@
-/* Mobile Menu Styles */
+/* Mobile Menu Styles - Pure CSS Toggle */
 @media (max-width: 768px) {
     .nav-container {
         position: relative;
         flex-wrap: nowrap;
+    }
+    
+    /* Hide the actual checkbox */
+    .menu-toggle {
+        display: none;
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
     }
     
     .nav-links {
@@ -20,8 +28,9 @@
         border-top: 2px solid #ff9800;
     }
     
-    .nav-links.mobile-open {
-        display: flex !important;
+    /* Show menu when checkbox is checked */
+    .menu-toggle:checked ~ .nav-links {
+        display: flex;
     }
     
     .nav-links a.nav-link,
@@ -70,6 +79,7 @@
         color: #666;
     }
     
+    /* Mobile menu button (label acts as button) */
     .mobile-menu-btn {
         display: flex !important;
         align-items: center;
@@ -95,13 +105,32 @@
         transform: scale(0.96);
     }
     
+    /* Show bars icon by default, hide times */
+    .mobile-menu-btn .fa-bars {
+        display: inline-block;
+    }
+    
+    .mobile-menu-btn .fa-times {
+        display: none;
+    }
+    
+    /* When checked: hide bars, show times */
+    .menu-toggle:checked ~ .mobile-menu-btn .fa-bars {
+        display: none;
+    }
+    
+    .menu-toggle:checked ~ .mobile-menu-btn .fa-times {
+        display: inline-block;
+    }
+    
     .search-bar {
         display: none;
     }
 }
 
-/* Desktop - hide hamburger */
+/* Desktop - hide hamburger and checkbox */
 @media (min-width: 769px) {
+    .menu-toggle,
     .mobile-menu-btn {
         display: none !important;
     }
@@ -110,5 +139,11 @@
         display: flex !important;
         align-items: center;
         gap: 20px;
+    }
+    
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 15px;
     }
 }
