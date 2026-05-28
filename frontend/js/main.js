@@ -24,7 +24,55 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Setup mobile menu button with proper touch support
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    if (mobileBtn) {
+        mobileBtn.addEventListener('touchstart', handleMobileMenu, {passive: false});
+        mobileBtn.addEventListener('click', handleMobileMenu);
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        const navLinks = document.querySelector('.nav-links');
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        if (navLinks && navLinks.classList.contains('mobile-open')) {
+            if (!navLinks.contains(e.target) && !mobileBtn.contains(e.target)) {
+                navLinks.classList.remove('mobile-open');
+                updateMenuIcon(false);
+            }
+        }
+    });
 });
+
+function handleMobileMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMobileMenu();
+}
+
+function toggleMobileMenu() {
+    const navLinks = document.querySelector('.nav-links');
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (!navLinks) return;
+    
+    const isOpen = navLinks.classList.toggle('mobile-open');
+    updateMenuIcon(isOpen);
+}
+
+function updateMenuIcon(isOpen) {
+    const icon = document.querySelector('.mobile-menu-btn i');
+    if (!icon) return;
+    
+    if (isOpen) {
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-times');
+    } else {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+    }
+}
 
 async function loadFeaturedProducts() {
     try {
@@ -70,12 +118,5 @@ function searchProducts() {
     const query = document.getElementById('searchInput').value.trim();
     if (query) {
         window.location.href = `products.html?search=${encodeURIComponent(query)}`;
-    }
-}
-
-function toggleMobileMenu() {
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks) {
-        navLinks.classList.toggle('mobile-open');
     }
 }
