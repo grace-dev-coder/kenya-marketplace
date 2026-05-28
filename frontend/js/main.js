@@ -24,73 +24,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Setup mobile menu with multiple event types for reliability
-    setupMobileMenu();
 });
 
-function setupMobileMenu() {
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const navLinks = document.querySelector('.nav-links');
-    
-    if (!mobileBtn || !navLinks) return;
-    
-    // Remove any existing listeners by cloning and replacing
-    const newBtn = mobileBtn.cloneNode(true);
-    mobileBtn.parentNode.replaceChild(newBtn, mobileBtn);
-    
-    // Use pointerdown for universal touch/click support
-    newBtn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMobileMenu();
-    });
-    
-    // Fallback touch handler
-    newBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        toggleMobileMenu();
-    }, {passive: false});
-    
-    // Fallback click handler
-    newBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleMobileMenu();
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('pointerdown', (e) => {
-        if (navLinks.classList.contains('mobile-open')) {
-            if (!navLinks.contains(e.target) && !newBtn.contains(e.target)) {
-                navLinks.classList.remove('mobile-open');
-                updateMenuIcon(false);
-            }
-        }
-    });
-}
-
 function toggleMobileMenu() {
-    const navLinks = document.querySelector('.nav-links');
-    if (!navLinks) return;
+    const navLinks = document.getElementById('navLinks');
+    const btn = document.getElementById('mobileMenuBtn');
+    
+    if (!navLinks || !btn) {
+        console.error('Menu elements not found');
+        return;
+    }
     
     const isOpen = navLinks.classList.toggle('mobile-open');
-    updateMenuIcon(isOpen);
     
-    // Debug
-    console.log('Menu toggled:', isOpen, 'Classes:', navLinks.className);
-}
-
-function updateMenuIcon(isOpen) {
-    const icon = document.querySelector('.mobile-menu-btn i, .mobile-menu-btn svg');
-    if (!icon) return;
-    
-    if (isOpen) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-times');
-    } else {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
+    // Update icon
+    const icon = btn.querySelector('i');
+    if (icon) {
+        if (isOpen) {
+            icon.className = 'fas fa-times';
+        } else {
+            icon.className = 'fas fa-bars';
+        }
     }
+    
+    // Force styles for mobile
+    if (window.innerWidth <= 768) {
+        if (isOpen) {
+            navLinks.style.display = 'flex';
+        } else {
+            navLinks.style.display = 'none';
+        }
+    }
+    
+    console.log('Menu toggled:', isOpen);
+    return false;
 }
 
 async function loadFeaturedProducts() {
