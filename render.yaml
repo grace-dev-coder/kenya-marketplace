@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: kenya-marketplace-api
+    runtime: python
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+
+  - type: static
+    name: kenya-marketplace-frontend
+    buildCommand: ""
+    staticPublishPath: ./frontend
+
+  - type: static
+    name: kenya-marketplace-admin
+    buildCommand: ""
+    staticPublishPath: ./admin
