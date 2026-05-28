@@ -5,3 +5,5 @@ passlib[bcrypt]
 python-multipart
 pydantic[email]
 email-validator
+pydantic-settings
+python-dotenv
