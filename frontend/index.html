@@ -21,6 +21,9 @@
                 <button type="button" onclick="searchProducts()"><i class="fas fa-search"></i></button>
             </div>
             
+            <!-- Hidden checkbox for mobile menu toggle (no JS needed) -->
+            <input type="checkbox" id="menuToggle" class="menu-toggle">
+            
             <div class="nav-links" id="navLinks">
                 <a href="products.html" class="nav-link">Shop</a>
                 <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
@@ -36,9 +39,10 @@
                 </div>
             </div>
             
-            <button class="mobile-menu-btn" type="button" aria-label="Toggle menu" id="mobileMenuBtn" onclick="toggleMobileMenu(); return false;">
+            <label for="menuToggle" class="mobile-menu-btn" aria-label="Toggle menu">
                 <i class="fas fa-bars"></i>
-            </button>
+                <i class="fas fa-times"></i>
+            </label>
         </div>
     </nav>
 
