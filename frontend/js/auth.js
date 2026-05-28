@@ -1,5 +1,9 @@
 // Authentication utilities
 
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000' 
+    : 'https://kenya-marketplace-api.onrender.com';
+
 function getToken() {
     return localStorage.getItem('access_token');
 }
@@ -54,7 +58,7 @@ async function updateCartCount() {
     if (!token) return;
     
     try {
-        const response = await fetch('http://localhost:8000/api/orders/cart', {
+        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
             headers: {'Authorization': `Bearer ${token}`}
         });
         const data = await response.json();
@@ -94,7 +98,7 @@ async function addToCart(productId, quantity = 1) {
     }
 
     try {
-        const response = await fetch('http://localhost:8000/api/orders/cart', {
+        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
