@@ -2,6 +2,7 @@
 @media (max-width: 768px) {
     .nav-container {
         position: relative;
+        flex-wrap: wrap;
     }
     
     .nav-links {
@@ -14,13 +15,13 @@
         flex-direction: column;
         padding: 0;
         margin: 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
         z-index: 999;
         border-top: 1px solid #eee;
     }
     
     .nav-links.mobile-open {
-        display: flex;
+        display: flex !important;
     }
     
     .nav-links a.nav-link,
@@ -32,10 +33,11 @@
         border-bottom: 1px solid #f0f0f0;
         text-decoration: none;
         color: #333;
+        font-size: 16px;
     }
     
-    .nav-links a.nav-link:hover,
-    .nav-links a.nav-link:active {
+    .nav-links a.nav-link:active,
+    .nav-links a.nav-link:hover {
         background: #f8f8f8;
     }
     
@@ -48,48 +50,62 @@
     
     .auth-links a {
         text-align: center;
+        width: 100%;
     }
     
     .user-menu {
         flex-direction: column;
         padding: 15px 20px;
+        gap: 10px;
+    }
+    
+    .user-menu #userName {
+        font-weight: 600;
+        padding: 5px 0;
     }
     
     .user-menu a {
-        padding: 10px 0;
-        color: #333;
-        text-decoration: none;
+        padding: 8px 0;
+        color: #666;
     }
     
+    /* CRITICAL: Make button visible and tappable */
     .mobile-menu-btn {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        background: none;
+        background: #ff9800;
         border: none;
-        font-size: 22px;
-        cursor: pointer;
-        padding: 8px 12px;
-        color: #333;
+        border-radius: 6px;
+        font-size: 20px;
+        color: #fff;
+        padding: 10px 14px;
         min-width: 44px;
         min-height: 44px;
-        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,152,0,0.3);
         touch-action: manipulation;
+        position: relative;
+        z-index: 1000;
     }
     
     .mobile-menu-btn:active {
-        opacity: 0.7;
+        transform: scale(0.95);
+        opacity: 0.9;
     }
     
     .search-bar {
-        display: none;
+        order: 3;
+        width: 100%;
+        margin: 10px 0 0;
+        display: none; /* Hidden on mobile, can be toggled separately */
     }
 }
 
-/* Desktop - hide hamburger, show normal nav */
+/* Desktop - hide hamburger */
 @media (min-width: 769px) {
     .mobile-menu-btn {
-        display: none;
+        display: none !important;
     }
     
     .nav-links {
