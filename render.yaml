@@ -10,13 +10,3 @@ services:
         value: 3.11.0
       - key: ENVIRONMENT
         value: production
-
-  - type: static
-    name: kenya-marketplace-frontend
-    buildCommand: ""
-    staticPublishPath: ./frontend
-
-  - type: static
-    name: kenya-marketplace-admin
-    buildCommand: ""
-    staticPublishPath: ./admin
