@@ -7,3 +7,4 @@ pydantic[email]
 email-validator
 pydantic-settings
 python-dotenv
+requests
