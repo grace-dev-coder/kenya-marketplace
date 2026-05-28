@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenya Marketplace - Shop Local, Shop Smart</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+            
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products...">
+                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
+                <a href="wishlist.html" class="nav-link"><i class="fas fa-heart"></i></a>
+                <div class="auth-links" id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display:none;">
+                    <span id="userName"></span>
+                    <a href="orders.html">My Orders</a>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Your One-Stop Kenyan Marketplace</h1>
+            <p>Discover quality products from verified local vendors. Fast delivery across Kenya.</p>
+            <a href="products.html" class="btn btn-primary btn-large">Start Shopping</a>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories-section">
+        <h2>Shop by Category</h2>
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="products-section">
+        <h2>Featured Products</h2>
+        <div class="products-grid" id="productsGrid">
+            <!-- Populated by JS -->
+        </div>
+        <div class="pagination" id="pagination"></div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section">
+        <div class="feature">
+            <i class="fas fa-shipping-fast"></i>
+            <h3>Fast Delivery</h3>
+            <p>Delivery within 24-48 hours in Nairobi, 2-5 days nationwide</p>
+        </div>
+        <div class="feature">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Secure Payments</h3>
+            <p>M-Pesa integration with instant confirmation</p>
+        </div>
+        <div class="feature">
+            <i class="fas fa-undo"></i>
+            <h3>Easy Returns</h3>
+            <p>7-day return policy on eligible items</p>
+        </div>
+        <div class="feature">
+            <i class="fas fa-headset"></i>
+            <h3>24/7 Support</h3>
+            <p>Dedicated customer service team</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About Us</h4>
+                <p>Kenya's premier online marketplace connecting buyers with verified local vendors.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Customer Service</h4>
+                <a href="terms.html">Terms & Conditions</a>
+                <a href="#">Return Policy</a>
+                <a href="#">Shipping Info</a>
+            </div>
+            <div class="footer-section">
+                <h4>Sell With Us</h4>
+                <a href="#">Become a Vendor</a>
+                <a href="#">Vendor Guidelines</a>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p><i class="fas fa-phone"></i> 0700 123 456</p>
+                <p><i class="fas fa-envelope"></i> support@kenyamarketplace.co.ke</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Kenya Marketplace. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+            <div class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <div class="user-menu" id="userMenu" style="display:none;">
+                    <span id="userName"></span>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="wishlist-page">
+        <h1>My Wishlist</h1>
+        <div class="products-grid" id="wishlistGrid">
+            <!-- Populated by JS -->
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        async function loadWishlist() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // This would fetch from a wishlist endpoint
+            document.getElementById('wishlistGrid').innerHTML = `
+                <div class="empty-wishlist">
+                    <i class="fas fa-heart"></i>
+                    <p>Your wishlist is empty</p>
+                    <a href="products.html" class="btn btn-primary">Discover Products</a>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWishlist();
+            updateAuthUI();
+        });
+    </script>
+</body>
+</html>

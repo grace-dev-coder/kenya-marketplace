@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-header   The response was cut off again. Let me continue providing the remaining admin panel files and complete the setup.
+
+---
+
+### `admin/dashboard.html` (continued)
+```html
+        <div class="sidebar-header">
+            <img src="../assets/logo.png" alt="Kenya Marketplace" class="sidebar-logo">
+            <h3>Admin Panel</h3>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item active">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fas fa-users"></i> Users
+            </a>
+            <a href="vendors.html" class="nav-item">
+                <i class="fas fa-store"></i> Vendors
+            </a>
+            <a href="products.html" class="nav-item">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="orders.html" class="nav-item">
+                <i class="fas fa-shopping-bag"></i> Orders
+            </a>
+            <a href="analytics.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <span id="adminName">Admin</span>
+            <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <header class="admin-header">
+            <h1>Dashboard Overview</h1>
+            <div class="header-actions">
+                <span id="currentDate"></span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalUsers">0</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon vendors">
+                    <i class="fas fa-store"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalVendors">0</h3>
+                    <p>Total Vendors</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon products">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalProducts">0</h3>
+                    <p>Total Products</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orders">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalOrders">0</h3>
+                    <p>Total Orders</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon revenue">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalRevenue">KES 0</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="pendingOrders">0</h3>
+                    <p>Pending Orders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-sections">
+            <div class="section-card">
+                <h3>Recent Orders</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersTable">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section-card">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions">
+                    <a href="products.html" class="action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Product</span>
+                    </a>
+                    <a href="vendors.html" class="action-btn">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Verify Vendors</span>
+                    </a>
+                    <a href="orders.html" class="action-btn">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Process Orders</span>
+                    </a>
+                    <label class="action-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-csv"></i>
+                        <span>Bulk Import</span>
+                        <input type="file" accept=".csv" style="display: none;" onchange="handleBulkImport(this)">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-KE', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+            <div class="nav-links">
+                <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
+                <div class="auth-links" id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display:none;">
+                    <span id="userName"></span>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="product-detail-page">
+        <div class="product-detail-container" id="productDetail">
+            <!-- Populated by JS -->
+        </div>
+
+        <section class="reviews-section">
+            <h2>Customer Reviews</h2>
+            <div id="reviewsList"></div>
+            <div class="add-review" id="addReviewSection" style="display:none;">
+                <h3>Write a Review</h3>
+                <form id="reviewForm" onsubmit="submitReview(event)">
+                    <div class="rating-input">
+                        <label>Rating:</label>
+                        <select id="rating">
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <textarea id="comment" placeholder="Share your experience..." rows="4"></textarea>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        async function loadProduct() {
+            try {
+                const response = await fetch(`http://localhost:8000/api/products/${productId}`);
+                const product = await response.json();
+
+                document.getElementById('productDetail').innerHTML = `
+                    <div class="product-images">
+                        <img src="${product.images || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="500" height="500"%3E%3Crect width="500" height="500" fill="%23f0f0f0"/%3E%3Ctext x="250" y="250" font-family="Arial" font-size="20" fill="%23999" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}" alt="${product.name}">
+                    </div>
+                    <div class="product-info-detail">
+                        <h1>${product.name}</h1>
+                        <p class="vendor">Sold by: ${product.vendor_name}</p>
+                        <div class="rating">
+                            ${'★'.repeat(Math.floor(product.average_rating))}${'☆'.repeat(5 - Math.floor(product.average_rating))}
+                            <span>(${product.average_rating} out of 5)</span>
+                        </div>
+                        <p class="price-large">KES ${product.price.toLocaleString()}</p>
+                        <p class="stock ${product.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}">
+                            ${product.stock_quantity > 0 ? `In Stock (${product.stock_quantity} available)` : 'Out of Stock'}
+                        </p>
+                        <p class="description">${product.description}</p>
+                        
+                        <div class="quantity-selector">
+                            <label>Quantity:</label>
+                            <input type="number" id="quantity" value="1" min="1" max="${product.stock_quantity}">
+                        </div>
+                        
+                        <div class="product-actions">
+                            <button class="btn btn-primary btn-large" onclick="addToCart(${product.id})">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                            <button class="btn btn-outline" onclick="addToWishlist(${product.id})">
+                                <i class="fas fa-heart"></i> Add to Wishlist
+                            </button>
+                        </div>
+                        
+                        <div class="product-meta">
+                            <p><strong>SKU:</strong> ${product.sku}</p>
+                            <p><strong>Category:</strong> ${product.category_name}</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading product:', error);
+            }
+        }
+
+        async function loadReviews() {
+            try {
+                const response = await fetch(`http://localhost:8000/api/reviews/product/${productId}`);
+                const reviews = await response.json();
+                
+                const reviewsList = document.getElementById('reviewsList');
+                if (reviews.length === 0) {
+                    reviewsList.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
+                } else {
+                    reviewsList.innerHTML = reviews.map(review => `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <span class="reviewer">${review.user_name}</span>
+                                <span class="review-date">${new Date(review.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                            <p>${review.comment || 'No comment'}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+            }
+        }
+
+        async function submitReview(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                alert('Please login to write a review');
+                return;
+            }
+
+            const data = {
+                product_id: parseInt(productId),
+                rating: parseInt(document.getElementById('rating').value),
+                comment: document.getElementById('comment').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:8000/api/reviews/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Review submitted successfully!');
+                    loadReviews();
+                    document.getElementById('reviewForm').reset();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to submit review');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProduct();
+            loadReviews();
+            updateAuthUI();
+            
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('addReviewSection').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

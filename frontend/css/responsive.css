@@ -1,0 +1,56 @@
+/* Additional responsive styles */
+
+@media (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-container {
+        flex-wrap: wrap;
+    }
+    
+    .logo {
+        order: 1;
+    }
+    
+    .search-bar {
+        order: 3;
+        flex-basis: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .mobile-menu-btn {
+        order: 2;
+        margin-left: auto;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .product-image {
+        height: 150px;
+    }
+    
+    .cart-item {
+        grid-template-columns: 60px 1fr auto;
+        grid-template-rows: auto auto;
+    }
+    
+    .item-quantity,
+    .item-total,
+    .remove-btn {
+        grid-column: span 1;
+    }
+    
+    .terms-container {
+        padding: 1.5rem;
+    }
+    
+    .auth-box {
+        padding: 1.5rem;
+    }
+}

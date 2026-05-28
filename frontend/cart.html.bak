@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+            <div class="nav-links">
+                <a href="products.html" class="nav-link">Continue Shopping</a>
+                <div class="user-menu" id="userMenu" style="display:none;">
+                    <span id="userName"></span>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="cart-page">
+        <h1>Shopping Cart</h1>
+        <div class="cart-container">
+            <div class="cart-items" id="cartItems">
+                <!-- Populated by JS -->
+            </div>
+            <div class="cart-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">KES 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>KES 200</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="cartTotal">KES 0</span>
+                </div>
+                <button class="btn btn-primary btn-full btn-large" onclick="proceedToCheckout()">
+                    Proceed to Checkout
+                </button>
+                <p class="secure-note"><i class="fas fa-lock"></i> Secure checkout with M-Pesa</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
+        async function loadCart() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:8000/api/orders/cart', {
+                    headers: {
+                        'Authorization': ,
+                        'Content-Type': 'application/json'
+                    }
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                const data = await response.json();
+
+                if (data.items.length === 0) {
+                    document.getElementById('cartItems').innerHTML = `
+                        <div class="empty-cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Your cart is empty</p>
+                            <a href="products.html" class="btn btn-primary">Start Shopping</a>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('cartItems').innerHTML = data.items.map(item => `
+                        <div class="cart-item">
+                            <img src="${item.product_image || 'https://placehold.co/100'}" alt="${item.product_name}">
+                            <div class="item-details">
+                                <h4>${item.product_name}</h4>
+                                <p class="item-price">KES ${item.product_price.toLocaleString()}</p>
+                            </div>
+                            <div class="item-quantity">
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                <span>${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                            </div>
+                            <span class="item-total">KES ${item.total_price.toLocaleString()}</span>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `).join('');
+                }
+
+                const total = data.total + 200; // Add shipping
+                document.getElementById('subtotal').textContent = `KES ${data.total.toLocaleString()}`;
+                document.getElementById('cartTotal').textContent = `KES ${total.toLocaleString()}`;
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+
+        async function updateQuantity(itemId, quantity) {
+            if (quantity < 1) return;
+            // Implementation would update quantity via API
+            loadCart();
+        }
+
+        async function removeFromCart(itemId) {
+            const token = localStorage.getItem('token');
+            try {
+                await fetch(`http://localhost:8000/api/orders/cart/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                loadCart();
+                updateCartCount();
+            } catch (error) {
+                console.error('Error removing item:', error);
+            }
+        }
+
+        function proceedToCheckout() {
+            window.location.href = 'checkout.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            updateAuthUI();
+        });
+    </script>
+</body>
+</html>

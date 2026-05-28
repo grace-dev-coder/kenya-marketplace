@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+        </div>
+    </nav>
+
+    <main class="checkout-page">
+        <div class="checkout-container">
+            <div class="checkout-form">
+                <h2>Shipping Information</h2>
+                <form id="checkoutForm" onsubmit="handleCheckout(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="shippingName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="shippingPhone" required placeholder="0712345678">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Address</label>
+                        <textarea id="shippingAddress" rows="3" required placeholder="Street, Building, Estate, City"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>County</label>
+                        <select id="county" required>
+                            <option value="">Select County</option>
+                            <option value="Nairobi">Nairobi</option>
+                            <option value="Mombasa">Mombasa</option>
+                            <option value="Kisumu">Kisumu</option>
+                            <option value="Nakuru">Nakuru</option>
+                            <option value="Eldoret">Eldoret</option>
+                            <option value="Kiambu">Kiambu</option>
+                            <option value="Kajiado">Kajiado</option>
+                            <option value="Machakos">Machakos</option>
+                        </select>
+                    </div>
+
+                    <h2>Payment Method</h2>
+                    <div class="payment-methods">
+                        <div class="payment-method active">
+                            <input type="radio" name="payment" value="mpesa" checked>
+                            <img src="https://placehold.co/40?text=M" alt="M-Pesa">
+                            <div>
+                                <strong>M-Pesa</strong>
+                                <p>Pay via M-Pesa mobile money</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>M-Pesa Phone Number</label>
+                        <input type="tel" id="mpesaPhone" required placeholder="254712345678">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-large">
+                        <i class="fas fa-lock"></i> Pay KES <span id="payAmount">0</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+                <div id="orderItems"></div>
+                <div class="summary-totals">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="summarySubtotal">KES 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>KES 200</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="summaryTotal">KES 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        let cartData = null;
+
+        async function loadCheckoutData() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('http://localhost:8000/api/orders/cart', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                cartData = await response.json();
+
+                if (cartData.items.length === 0) {
+                    window.location.href = 'cart.html';
+                    return;
+                }
+
+                document.getElementById('orderItems').innerHTML = cartData.items.map(item => `
+                    <div class="order-item">
+                        <img src="${item.product_image || 'https://placehold.co/60'}" alt="${item.product_name}">
+                        <div>
+                            <p>${item.product_name}</p>
+                            <p>Qty: ${item.quantity}</p>
+                        </div>
+                        <span>KES ${item.total_price.toLocaleString()}</span>
+                    </div>
+                `).join('');
+
+                const total = cartData.total + 200;
+                document.getElementById('summarySubtotal').textContent = `KES ${cartData.total.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `KES ${total.toLocaleString()}`;
+                document.getElementById('payAmount').textContent = total.toLocaleString();
+            } catch (error) {
+                console.error('Error loading checkout data:', error);
+            }
+        }
+
+        async function handleCheckout(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('access_token');
+            
+            const orderData = {
+                shipping_address: `${document.getElementById('shippingAddress').value}, ${document.getElementById('county').value}`,
+                shipping_phone: document.getElementById('shippingPhone').value,
+                items: cartData.items.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    unit_price: item.product_price
+                }))
+            };
+
+            try {
+                // Create order
+                const orderResponse = await fetch('http://localhost:8000/api/orders/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const order = await orderResponse.json();
+
+                // Initiate M-Pesa payment
+                const paymentData = {
+                    order_id: order.id,
+                    phone_number: document.getElementById('mpesaPhone').value,
+                    amount: cartData.total + 200
+                };
+
+                const paymentResponse = await fetch('http://localhost:8000/api/payments/mpesa/initiate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const payment = await paymentResponse.json();
+
+                if (paymentResponse.ok) {
+                    alert('M-Pesa payment initiated! Check your phone to complete the payment.');
+                    window.location.href = 'orders.html';
+                } else {
+                    alert(payment.detail || 'Payment initiation failed');
+                }
+            } catch (error) {
+                alert('Checkout failed. Please try again.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCheckoutData);
+    </script>
+</body>
+</html>

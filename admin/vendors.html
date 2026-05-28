@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Vendors - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <img src="../assets/logo.png" alt="Kenya Marketplace" class="sidebar-logo">
+            <h3>Admin Panel</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="users.html" class="nav-item"><i class="fas fa-users"></i> Users</a>
+            <a href="vendors.html" class="nav-item active"><i class="fas fa-store"></i> Vendors</a>
+            <a href="products.html" class="nav-item"><i class="fas fa-box"></i> Products</a>
+            <a href="orders.html" class="nav-item"><i class="fas fa-shopping-bag"></i> Orders</a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-bar"></i> Analytics</a>
+        </nav>
+        <div class="sidebar-footer">
+            <span id="adminName">Admin</span>
+            <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <h1>Manage Vendors</h1>
+        </header>
+
+        <div class="section-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Business Name</th>
+                        <th>Owner</th>
+                        <th>KRA PIN</th>
+                        <th>Phone</th>
+                        <th>Verified</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="vendorsTable">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="js/admin-auth.js"></script>
+    <script>
+        async function loadVendors() {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const response = await fetch('http://localhost:8000/api/vendors/', {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                const vendors = await response.json();
+                
+                document.getElementById('vendorsTable').innerHTML = vendors.map(vendor => `
+                    <tr>
+                        <td>${vendor.id}</td>
+                        <td>${vendor.business_name}</td>
+                        <td>${vendor.user_id}</td>
+                        <td>${vendor.kra_pin}</td>
+                        <td>${vendor.business_phone}</td>
+                        <td>
+                            <span class="badge ${vendor.is_verified ? 'badge-success' : 'badge-warning'}">
+                                ${vendor.is_verified ? 'Verified' : 'Pending'}
+                            </span>
+                        </td>
+                        <td>${vendor.rating}</td>
+                        <td>
+                            ${!vendor.is_verified ? 
+                                `<button class="btn btn-sm btn-success" onclick="verifyVendor(${vendor.id})">Verify</button>` : 
+                                '<span class="text-success"><i class="fas fa-check"></i></span>'
+                            }
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading vendors:', error);
+            }
+        }
+
+        async function verifyVendor(vendorId) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                await fetch(`http://localhost:8000/api/vendors/${vendorId}/verify`, {
+                    method: 'PUT',
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                loadVendors();
+            } catch (error) {
+                alert('Error verifying vendor');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadVendors();
+        });
+    </script>
+</body>
+</html>

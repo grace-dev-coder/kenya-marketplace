@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo.png" alt="Kenya Marketplace">
+            </a>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products...">
+                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="nav-links">
+                <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
+                <div class="auth-links" id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display:none;">
+                    <span id="userName"></span>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="products-page">
+        <aside class="filters-sidebar">
+            <h3>Filters</h3>
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="categoryFilter" onchange="applyFilters()">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Price Range (KES)</label>
+                <input type="number" id="minPrice" placeholder="Min" onchange="applyFilters()">
+                <input type="number" id="maxPrice" placeholder="Max" onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="sortBy" onchange="applyFilters()">
+                    <option value="created_at">Newest</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                </select>
+            </div>
+        </aside>
+
+        <main class="products-main">
+            <div class="products-header">
+                <h1>All Products</h1>
+                <span id="resultsCount">Loading...</span>
+            </div>
+            <div class="products-grid" id="productsGrid"></div>
+            <div class="pagination"  I notice the response was cut off. Let me continue providing the complete code for all remaining files. I'll generate the rest of the frontend files, admin panel, and CSS/JS files.
+
+---
+
+### `frontend/products.html` (continued)
+```html
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/products.js"></script>
+    <script>
+        let currentPage = 0;
+        const limit = 12;
+
+        async function loadProducts(page = 0) {
+            currentPage = page;
+            const category = document.getElementById('categoryFilter').value;
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            const sortBy = document.getElementById('sortBy').value;
+            const search = new URLSearchParams(window.location.search).get('search') || '';
+
+            let url = `http://localhost:8000/api/products/?skip=${page * limit}&limit=${limit}&sort_by=${sortBy}`;
+            if (category) url += `&category_id=${category}`;
+            if (minPrice) url += `&min_price=${minPrice}`;
+            if (maxPrice) url += `&max_price=${maxPrice}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
+            try {
+                const response = await fetch(url);
+                const products = await response.json();
+                
+                const grid = document.getElementById('productsGrid');
+                grid.innerHTML = products.map(product => `
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="${product.images || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23f0f0f0"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="20" fill="%23999" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}" alt="${product.name}">
+                            <button class="wishlist-btn" onclick="addToWishlist(${product.id})"><i class="fas fa-heart"></i></button>
+                        </div>
+                        <div class="product-info">
+                            <h3><a href="product-detail.html?id=${product.id}">${product.name}</a></h3>
+                            <p class="vendor">${product.vendor_name}</p>
+                            <div class="rating">
+                                ${'★'.repeat(Math.floor(product.average_rating))}${'☆'.repeat(5 - Math.floor(product.average_rating))}
+                                <span>(${product.average_rating})</span>
+                            </div>
+                            <div class="product-footer">
+                                <span class="price">KES ${product.price.toLocaleString()}</span>
+                                <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('resultsCount').textContent = `${products.length} products found`;
+                renderPagination(products.length === limit);
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        function renderPagination(hasMore) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+            if (currentPage > 0) {
+                html += `<button onclick="loadProducts(${currentPage - 1})" class="btn btn-outline">Previous</button>`;
+            }
+            html += `<span>Page ${currentPage + 1}</span>`;
+            if (hasMore) {
+                html += `<button onclick="loadProducts(${currentPage + 1})" class="btn btn-outline">Next</button>`;
+            }
+            pagination.innerHTML = html;
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('http://localhost:8000/api/products/categories');
+                const categories = await response.json();
+                const select = document.getElementById('categoryFilter');
+                categories.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        function applyFilters() {
+            loadProducts(0);
+        }
+
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            window.location.href = `products.html?search=${encodeURIComponent(query)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadProducts();
+            updateAuthUI();
+        });
+    </script>
+</body>
+</html>

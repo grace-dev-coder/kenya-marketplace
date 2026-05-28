@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products - Kenya Marketplace</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <img src="../assets/logo.png" alt="Kenya Marketplace" class="sidebar-logo">
+            <h3>Admin Panel</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="users.html" class="nav-item"><i class="fas fa-users"></i> Users</a>
+            <a href="vendors.html" class="nav-item"><i class="fas fa-store"></i> Vendors</a>
+            <a href="products.html" class="nav-item active"><i class="fas fa-box"></i> Products</a>
+            <a href="orders.html" class="nav-item"><i class="fas fa-shopping-bag"></i> Orders</a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-bar"></i> Analytics</a>
+        </nav>
+        <div class="sidebar-footer">
+            <span id="adminName">Admin</span>
+            <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <h1>Manage Products</h1>
+            <button class="btn btn-primary" onclick="showAddProductModal()">
+                <i class="fas fa-plus"></i> Add Product
+            </button>
+        </header>
+
+        <div class="section-card">
+            <div class="table-header">
+                <input type="text" placeholder="Search products..." id="productSearch">
+                <label class="btn btn-outline">
+                    <i class="fas fa-file-csv"></i> Import CSV
+                    <input type="file" accept=".csv" style="display: none;" onchange="importProducts(this)">
+                </label>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Price (KES)</th>
+                        <th>Stock</th>
+                        <th>Category</th>
+                        <th>Vendor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTable">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div class="modal" id="productModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Add New Product</h3>
+            <form id="addProductForm" onsubmit="handleAddProduct(event)">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="prodName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="prodDesc" rows="3" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Price (KES)</label>
+                        <input type="number" id="prodPrice" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" id="prodStock" required min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Category ID</label>
+                    <input type="number" id="prodCategory" required>
+                </div>
+                <div class="form-group">
+                    <label>Vendor ID</label>
+                    <input type="number" id="prodVendor" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/admin-auth.js"></script>
+    <script src="js/products.js"></script>
+</body>
+</html>
