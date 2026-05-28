@@ -25,44 +25,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Setup mobile menu button with proper touch support
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    if (mobileBtn) {
-        mobileBtn.addEventListener('touchstart', handleMobileMenu, {passive: false});
-        mobileBtn.addEventListener('click', handleMobileMenu);
-    }
+    // Setup mobile menu with multiple event types for reliability
+    setupMobileMenu();
+});
 
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', (e) => {
-        const navLinks = document.querySelector('.nav-links');
-        const mobileBtn = document.querySelector('.mobile-menu-btn');
-        if (navLinks && navLinks.classList.contains('mobile-open')) {
-            if (!navLinks.contains(e.target) && !mobileBtn.contains(e.target)) {
+function setupMobileMenu() {
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (!mobileBtn || !navLinks) return;
+    
+    // Remove any existing listeners by cloning and replacing
+    const newBtn = mobileBtn.cloneNode(true);
+    mobileBtn.parentNode.replaceChild(newBtn, mobileBtn);
+    
+    // Use pointerdown for universal touch/click support
+    newBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMobileMenu();
+    });
+    
+    // Fallback touch handler
+    newBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        toggleMobileMenu();
+    }, {passive: false});
+    
+    // Fallback click handler
+    newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleMobileMenu();
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('pointerdown', (e) => {
+        if (navLinks.classList.contains('mobile-open')) {
+            if (!navLinks.contains(e.target) && !newBtn.contains(e.target)) {
                 navLinks.classList.remove('mobile-open');
                 updateMenuIcon(false);
             }
         }
     });
-});
-
-function handleMobileMenu(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleMobileMenu();
 }
 
 function toggleMobileMenu() {
     const navLinks = document.querySelector('.nav-links');
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    
     if (!navLinks) return;
     
     const isOpen = navLinks.classList.toggle('mobile-open');
     updateMenuIcon(isOpen);
+    
+    // Debug
+    console.log('Menu toggled:', isOpen, 'Classes:', navLinks.className);
 }
 
 function updateMenuIcon(isOpen) {
-    const icon = document.querySelector('.mobile-menu-btn i');
+    const icon = document.querySelector('.mobile-menu-btn i, .mobile-menu-btn svg');
     if (!icon) return;
     
     if (isOpen) {
