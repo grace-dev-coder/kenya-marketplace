@@ -705,7 +705,7 @@ section h2 {
 
 .input-group input {
     width: 100%;
-    padding: 14px 45px 14px 56px;
+    padding: 14px 45px 14px 58px;
     border: 2px solid #e8e8e8;
     border-radius: 12px;
     font-size: 15px;
@@ -733,7 +733,7 @@ section h2 {
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    color: #4ade80;
+    color: #aaa;
     font-size: 16px;
     pointer-events: none;
     z-index: 2;
