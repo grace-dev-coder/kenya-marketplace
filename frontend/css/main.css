@@ -437,3 +437,178 @@ section h2 {
     color: #888;
     font-size: 16px;
 }
+
+/* ===== AUTH PAGES (Login & Register) ===== */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    background: #fff;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 0;
+}
+
+.auth-logo {
+    display: block;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo img {
+    height: 50px;
+}
+
+.auth-box h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: #1a237e;
+    font-weight: 700;
+}
+
+.auth-box .subtitle {
+    color: #888;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+.auth-form .form-group {
+    margin-bottom: 20px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="tel"],
+.auth-form select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    font-family: inherit;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+    border-color: #ff9800;
+    box-shadow: 0 0 0 3px rgba(255,152,0,0.15);
+}
+
+.auth-form .password-wrapper {
+    position: relative;
+}
+
+.auth-form .password-wrapper input {
+    padding-right: 45px;
+}
+
+.auth-form .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+}
+
+.auth-form .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.auth-form .checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff9800;
+    flex-shrink: 0;
+}
+
+.auth-form .checkbox-group label {
+    margin: 0;
+    font-weight: 400;
+    font-size: 14px;
+    color: #666;
+    flex: 1;
+}
+
+.auth-form .checkbox-group label a {
+    color: #ff9800;
+    text-decoration: none;
+}
+
+.auth-form .checkbox-group .forgot-link {
+    margin-left: auto;
+    color: #ff9800;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.auth-form .btn-large {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+    color: #666;
+    font-size: 14px;
+}
+
+.auth-footer a {
+    color: #ff9800;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile auth page adjustments */
+@media (max-width: 768px) {
+    .auth-page {
+        padding: 15px;
+    }
+    
+    .auth-container {
+        padding: 10px 0;
+    }
+    
+    .auth-box h1 {
+        font-size: 24px;
+    }
+    
+    .auth-logo img {
+        height: 40px;
+    }
+}
