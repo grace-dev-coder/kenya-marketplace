@@ -709,7 +709,7 @@ section h2 {
 
 .input-group input {
     width: 100%;
-    padding: 14px 45px 14px 45px;
+    padding: 14px 45px 14px 50px;
     border: 2px solid #e8e8e8;
     border-radius: 12px;
     font-size: 15px;
@@ -734,13 +734,15 @@ section h2 {
 
 .input-icon {
     position: absolute;
-    left: 16px;
+    left: 18px;
     top: 50%;
     transform: translateY(-50%);
     color: #bbb;
     font-size: 16px;
     pointer-events: none;
     z-index: 2;
+    width: 20px;
+    text-align: center;
 }
 
 .toggle-password {
