@@ -18,35 +18,51 @@
         <p class="auth-subtitle">Join thousands of happy shoppers</p>
         
         <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
-            <div class="input-group">
-                <i class="fas fa-user input-icon"></i>
-                <input type="text" id="fullName" placeholder="Daniel Natwom" required>
+            <div class="form-field">
+                <label for="fullName">Full Name</label>
+                <div class="input-group">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="fullName" placeholder="Daniel Natwom" required>
+                </div>
             </div>
             
-            <div class="input-group">
-                <i class="fas fa-envelope input-icon"></i>
-                <input type="email" id="email" placeholder="your@email.com" required>
+            <div class="form-field">
+                <label for="email">Email Address</label>
+                <div class="input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" placeholder="your@email.com" required>
+                </div>
             </div>
             
-            <div class="input-group">
-                <i class="fas fa-phone input-icon"></i>
-                <input type="tel" id="phone" placeholder="+254712345678" required>
+            <div class="form-field">
+                <label for="phone">Phone Number</label>
+                <div class="input-group">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="tel" id="phone" placeholder="+254712345678" required>
+                </div>
+                <small class="input-hint">Format: +254712345678</small>
             </div>
             
-            <div class="input-group">
-                <i class="fas fa-lock input-icon"></i>
-                <input type="password" id="password" placeholder="Create a strong password" required minlength="6">
-                <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
+            <div class="form-field">
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" placeholder="Create a strong password" required minlength="6">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
             
-            <div class="input-group">
-                <i class="fas fa-lock input-icon"></i>
-                <input type="password" id="confirmPassword" placeholder="Repeat your password" required>
-                <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
+            <div class="form-field">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="confirmPassword" placeholder="Repeat your password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="terms-check">

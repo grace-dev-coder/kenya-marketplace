@@ -682,6 +682,26 @@ section h2 {
     text-align: left;
 }
 
+.form-field {
+    margin-bottom: 16px;
+}
+
+.form-field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.input-hint {
+    display: block;
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+    margin-left: 4px;
+}
+
 .input-group {
     position: relative;
     margin-bottom: 16px;
