@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Kenya Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #1A1A2E;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        a { text-decoration: none; color: inherit; }
+
+        .auth-card {
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #FF8C00 0%, #E67E00 100%);
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-card h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.3rem;
+            color: #1A1A2E;
+        }
+
+        .auth-card .subtitle {
+            color: #6C757D;
+            margin-bottom: 1.8rem;
+            font-size: 0.95rem;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #2C3E50;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 2px solid #E9ECEF;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: #FFFFFF;
+            color: #1A1A2E;
+            outline: none;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #B0B0B0;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #FF8C00;
+            box-shadow: 0 0 0 4px rgba(255,140,0,0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF8C00 0%, #E67E00 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(255,140,0,0.3);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,140,0,0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Error message */
+        .error-msg {
+            color: #E74C3C;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #fdeaea;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        /* Info box */
+        .info-box {
+            background: #FFF3E0;
+            border-left: 4px solid #FF8C00;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #2C3E50;
+            display: none;
+        }
+
+        .info-box.show {
+            display: block;
+        }
+
+        .info-box code {
+            background: #fff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #E67E00;
+        }
+
+        /* Auth Footer */
+        .auth-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #E9ECEF;
+        }
+
+        .auth-footer a {
+            color: #6C757D;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .auth-footer a:hover {
+            color: #FF8C00;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: #FFFFFF;
+            font-weight: 500;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            animation: slideIn 0.3s ease;
+            min-width: 280px;
+        }
+
+        .toast.success { background: #27AE60; }
+        .toast.error { background: #E74C3C; }
+        .toast.info { background: #3498DB; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="auth-card">
+        <div class="logo-text">KENYA MARKETPLACE</div>
+        <h1>Admin Portal</h1>
+        <p class="subtitle">Secure access for administrators</p>
+
+        <form id="adminLoginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" placeholder="admin@kenyamarketplace.co.ke" value="admin@kenyamarketplace.co.ke" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+            </button>
+        </form>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="info-box" id="infoBox">
+            <strong>Demo Mode Active</strong><br>
+            Backend not connected. Using demo credentials:<br>
+            <code>admin@kenyamarketplace.co.ke</code> / <code>admin123</code>
+        </div>
+
+        <div class="auth-footer">
+            <a href="../index.html"><i class="fas fa-arrow-left"></i> Back to Store</a>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================================
+        // API CONFIGURATION - UPDATE THIS WITH YOUR BACKEND URL
+        // ============================================================
+        // 
+        // Option 1: If your backend is on Render, use your service URL:
+        // const API_BASE = 'https://kenya-marketplace-admin.onrender.com/api';
+        //
+        // Option 2: If backend is on same domain (rare for static sites):
+        // const API_BASE = '/api';
+        //
+        // Option 3: Auto-detect (tries to guess based on current domain):
+        //
+
+        const CURRENT_HOST = window.location.hostname;
+
+        // Auto-detect API URL
+        let API_BASE;
+        if (CURRENT_HOST.includes('localhost') || CURRENT_HOST === '127.0.0.1') {
+            API_BASE = 'http://localhost:8000/api';
+        } else if (CURRENT_HOST.includes('onrender.com')) {
+            // Try common backend naming patterns
+            // Replace 'admin' or 'frontend' with 'api' or 'backend'
+            const backendHost = CURRENT_HOST
+                .replace('-admin', '-api')
+                .replace('-frontend', '-api')
+                .replace('marketplace-admin', 'kenya-marketplace-api');
+            API_BASE = 'https://' + backendHost + '/api';
+        } else {
+            API_BASE = 'https://kenya-marketplace-api.onrender.com/api';
+        }
+
+        console.log('API Base URL:', API_BASE);
+
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + (type || 'info');
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 4000);
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(function() { el.classList.remove('show'); }, 8000);
+        }
+
+        function showInfo() {
+            document.getElementById('infoBox').classList.add('show');
+        }
+
+        function hideInfo() {
+            document.getElementById('infoBox').classList.remove('show');
+        }
+
+        // ============================================================
+        // LOGIN HANDLER
+        // ============================================================
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            hideInfo();
+
+            try {
+                // Try API login
+                const response = await fetch(API_BASE + '/auth/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    localStorage.setItem('admin_token', data.access_token);
+                    showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+                } else {
+                    showError(data.detail || 'Invalid email or password');
+                }
+            } catch (err) {
+                console.error('API Error:', err);
+
+                // Backend unreachable - offer demo mode
+                showInfo();
+                showToast('Backend not connected - Demo mode available', 'info');
+
+                // Auto-fill demo credentials for easy testing
+                if (email === 'admin@kenyamarketplace.co.ke') {
+                    document.getElementById('password').value = 'admin123';
+                    document.getElementById('password').focus();
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+            }
+        });
+
+        // ============================================================
+        // DEMO LOGIN (Double-click the button for instant demo access)
+        // ============================================================
+
+        document.getElementById('loginBtn').addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            localStorage.setItem('admin_token', 'demo-token-' + Date.now());
+            showToast('Demo login successful!', 'success');
+            setTimeout(function() { window.location.href = 'dashboard.html'; }, 1000);
+        });
+    </script>
+</body>
+</html>
