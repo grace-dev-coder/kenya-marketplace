@@ -695,11 +695,7 @@ section h2 {
 }
 
 .input-hint {
-    display: block;
-    font-size: 12px;
-    color: #999;
-    margin-top: 4px;
-    margin-left: 4px;
+    display: none;
 }
 
 .input-group {
@@ -709,7 +705,7 @@ section h2 {
 
 .input-group input {
     width: 100%;
-    padding: 14px 45px 14px 52px;
+    padding: 14px 45px 14px 56px;
     border: 2px solid #e8e8e8;
     border-radius: 12px;
     font-size: 15px;
@@ -734,14 +730,14 @@ section h2 {
 
 .input-icon {
     position: absolute;
-    left: 18px;
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    color: #bbb;
+    color: #4ade80;
     font-size: 16px;
     pointer-events: none;
     z-index: 2;
-    width: 24px;
+    width: 20px;
     text-align: center;
     display: flex;
     align-items: center;
