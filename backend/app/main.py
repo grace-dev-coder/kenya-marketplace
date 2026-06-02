@@ -1,56 +1,33 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from .routers import api_router
-from .database import init_db
-import os
+from app.routers import auth, products, orders, payments, vendors, admin, reviews
 
-app = FastAPI(
-    title="Kenya Marketplace API",
-    description="E-commerce platform for Kenya with M-Pesa integration",
-    version="1.0.0"
-)
+app = FastAPI(title="Kenya Marketplace API")
 
-init_db()
-
-# CORS - Allow ALL origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://kenya-marketplace-frontend.onrender.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:5500",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-os.makedirs("assets/products", exist_ok=True)
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-app.include_router(api_router, prefix="/api")
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(products.router, prefix="/api/products", tags=["products"])
+app.include_router(orders.router, prefix="/api/orders", tags=["orders"])
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(vendors.router, prefix="/api/vendors", tags=["vendors"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(reviews.router, prefix="/api/reviews", tags=["reviews"])
 
 @app.get("/")
-async def root():
-    return {"message": "Kenya Marketplace API", "version": "1.0.0", "docs": "/docs"}
+def root():
+    return {"message": "Kenya Marketplace API", "status": "running"}
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-@app.get("/api/messages/recent")
-async def messages_recent_stub(since_id: int = 0):
-    """Stub endpoint to prevent 404 errors from frontend polling"""
-    return {"messages": [], "last_id": since_id, "unread_count": 0}
-
-@app.get("/api/debug/auth")
-async def debug_auth(request: Request):
-    auth = request.headers.get("authorization", "NONE")
-    result = {"received": auth[:50] + "..." if len(auth) > 50 else auth}
-    if auth.startswith("Bearer "):
-        token = auth[7:]
-        from .auth import verify_token
-        email = verify_token(token)
-        result["decoded_email"] = email
-        from .database import execute_query
-        user = execute_query("SELECT id, email FROM users WHERE email = ?", (email,), fetch=True)
-        result["user_found"] = len(user) > 0
-        if user:
-            result["user_id"] = user[0]["id"]
-    return result
+def health_check():
+    return {"status": "ok"}

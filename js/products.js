@@ -1,180 +1,160 @@
-// Product-related functions
+// frontend/js/products.js
+const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000' 
-    : 'https://kenya-marketplace-api.onrender.com';
-
-async function loadFeaturedProducts() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/products/?limit=8`);
-        const products = await response.json();
-
-        const grid = document.getElementById('productsGrid');
-        if (!grid) return;
-
-        grid.innerHTML = products.map(product => `
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="${product.images || 'https://placehold.co/300x300?text=No+Image'}" alt="${product.name}">
-                    <button class="wishlist-btn" onclick="addToWishlist(${product.id})"><i class="fas fa-heart"></i></button>
-                </div>
-                <div class="product-info">
-                    <h3><a href="product-detail.html?id=${product.id}">${product.name}</a></h3>
-                    <p class="vendor">${product.vendor_name}</p>
-                    <div class="rating">
-                        ${'★'.repeat(Math.floor(product.average_rating))}${'☆'.repeat(5 - Math.floor(product.average_rating))}
-                        <span>(${product.average_rating})</span>
-                    </div>
-                    <div class="product-footer">
-                        <span class="price">KES ${product.price.toLocaleString()}</span>
-                        <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading featured products:', error);
+class ProductManager {
+    constructor() {
+        this.products = [];
+        this.filters = {
+            category: 'All Categories',
+            minPrice: null,
+            maxPrice: null,
+            sortBy: 'newest'
+        };
+        this.init();
     }
-}
 
-async function loadCategories() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/products/categories`);
-        const categories = await response.json();
-
-        const grid = document.getElementById('categoriesGrid');
-        if (!grid) return;
-
-        const icons = ['fa-mobile-alt', 'fa-tshirt', 'fa-couch', 'fa-spa', 'fa-car', 'fa-shopping-basket', 'fa-futbol'];
-
-        grid.innerHTML = categories.map((cat, index) => `
-            <div class="category-card" onclick="window.location.href='products.html?category=${cat.id}'">
-                <i class="fas ${icons[index % icons.length]}"></i>
-                <h3>${cat.name}</h3>
-                <p>${cat.product_count || 0} products</p>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading categories:', error);
+    init() {
+        this.bindEvents();
+        this.loadProducts();
     }
-}
 
-async function loadProductsPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoryId = urlParams.get('category');
-    const searchQuery = urlParams.get('search');
-    const sortBy = urlParams.get('sort_by') || 'created_at';
-    
-    let url = `${API_BASE_URL}/api/products/?skip=0&limit=12&sort_by=${sortBy}`;
-    if (categoryId) url += `&category_id=${categoryId}`;
-    if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
+    bindEvents() {
+        document.getElementById('category-filter')?.addEventListener('change', (e) => {
+            this.filters.category = e.target.value;
+            this.loadProducts();
+        });
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
+        document.getElementById('min-price')?.addEventListener('input', (e) => {
+            this.filters.minPrice = e.target.value ? parseFloat(e.target.value) : null;
+            this.loadProducts();
+        });
+
+        document.getElementById('max-price')?.addEventListener('input', (e) => {
+            this.filters.maxPrice = e.target.value ? parseFloat(e.target.value) : null;
+            this.loadProducts();
+        });
+
+        document.getElementById('sort-by')?.addEventListener('change', (e) => {
+            this.filters.sortBy = e.target.value;
+            this.loadProducts();
+        });
+
+        document.getElementById('search-btn')?.addEventListener('click', () => {
+            this.searchProducts();
+        });
+
+        document.getElementById('search-input')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.searchProducts();
+        });
+    }
+
+    async loadProducts() {
+        const container = document.getElementById('products-container');
+        const loadingEl = document.getElementById('loading');
         
-        const grid = document.getElementById('productsGrid');
-        if (!grid) return;
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (container) container.innerHTML = '';
 
-        if (!data.products || data.products.length === 0) {
-            grid.innerHTML = '<p class="no-results">No products found</p>';
-            return;
+        try {
+            const params = new URLSearchParams();
+            if (this.filters.category !== 'All Categories') {
+                params.append('category', this.filters.category);
+            }
+            if (this.filters.minPrice) params.append('min_price', this.filters.minPrice);
+            if (this.filters.maxPrice) params.append('max_price', this.filters.maxPrice);
+            params.append('sort_by', this.filters.sortBy);
+
+            const response = await fetch(`${API_BASE_URL}/products?${params}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.products = await response.json();
+            this.renderProducts();
+        } catch (error) {
+            console.error('Error loading products:', error);
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-message" style="text-align:center; padding:40px; color:#e74c3c;">
+                        <p>Failed to load products. Backend may be starting up (takes ~30s on free Render).</p>
+                        <button onclick="productManager.loadProducts()" style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">Retry</button>
+                    </div>
+                `;
+            }
+        } finally {
+            if (loadingEl) loadingEl.style.display = 'none';
         }
-
-        grid.innerHTML = data.products.map(product => `
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="${product.images || 'https://placehold.co/300x300?text=No+Image'}" alt="${product.name}">
-                    <button class="wishlist-btn" onclick="addToWishlist(${product.id})"><i class="fas fa-heart"></i></button>
-                </div>
-                <div class="product-info">
-                    <h3><a href="product-detail.html?id=${product.id}">${product.name}</a></h3>
-                    <p class="vendor">${product.vendor_name}</p>
-                    <div class="rating">
-                        ${'★'.repeat(Math.floor(product.average_rating))}${'☆'.repeat(5 - Math.floor(product.average_rating))}
-                        <span>(${product.average_rating})</span>
-                    </div>
-                    <div class="product-footer">
-                        <span class="price">KES ${product.price.toLocaleString()}</span>
-                        <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        // Update page title if searching
-        if (searchQuery) {
-            document.title = `Search: ${searchQuery} - Kenya Marketplace`;
-        }
-    } catch (error) {
-        console.error('Error loading products:', error);
     }
-}
 
-async function loadProductDetail() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
-    if (!productId) return;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
-        const product = await response.json();
-
-        document.getElementById('productName').textContent = product.name;
-        document.getElementById('productPrice').textContent = `KES ${product.price.toLocaleString()}`;
-        document.getElementById('productVendor').textContent = product.vendor_name;
-        document.getElementById('productDescription').textContent = product.description;
-        
-        const imageEl = document.getElementById('productImage');
-        if (imageEl) imageEl.src = product.images || 'https://placehold.co/500x500?text=No+Image';
-
-        // Load reviews if available
-        loadProductReviews(productId);
-    } catch (error) {
-        console.error('Error loading product detail:', error);
-    }
-}
-
-async function loadProductReviews(productId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/reviews/?product_id=${productId}`);
-        const reviews = await response.json();
-        
-        const container = document.getElementById('reviewsList');
+    renderProducts() {
+        const container = document.getElementById('products-container');
         if (!container) return;
 
-        if (!reviews || reviews.length === 0) {
-            container.innerHTML = '<p>No reviews yet</p>';
+        if (this.products.length === 0) {
+            container.innerHTML = '<p class="no-products" style="text-align:center; padding:40px; color:#666;">No products found.</p>';
             return;
         }
 
-        container.innerHTML = reviews.map(review => `
-            <div class="review">
-                <div class="review-header">
-                    <span class="reviewer">${review.user_name}</span>
-                    <span class="stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
+        container.innerHTML = this.products.map(product => `
+            <div class="product-card" data-id="${product.id}" style="border:1px solid #ddd; border-radius:8px; overflow:hidden; transition:box-shadow 0.3s;">
+                <div class="product-image" style="width:100%; height:200px; overflow:hidden;">
+                    <img src="${product.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}" 
+                         alt="${product.name}" 
+                         style="width:100%; height:100%; object-fit:cover;"
+                         onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
                 </div>
-                <p>${review.comment}</p>
-                <small>${new Date(review.created_at).toLocaleDateString()}</small>
+                <div class="product-info" style="padding:15px;">
+                    <h3 style="margin:0 0 10px; font-size:1.1rem;">${product.name}</h3>
+                    <p class="category" style="color:#666; font-size:0.9rem;">${product.category}</p>
+                    <p class="price" style="font-weight:bold; color:#e67e22; font-size:1.2rem;">KES ${product.price.toLocaleString()}</p>
+                    <p class="stock" style="font-size:0.9rem; color:${product.stock > 0 ? '#27ae60' : '#e74c3c'};">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</p>
+                </div>
+                <div class="product-actions" style="padding:15px; display:flex; gap:10px;">
+                    <button onclick="window.location.href='product-detail.html?id=${product.id}'" 
+                            style="flex:1; padding:10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:600;">
+                        View Details
+                    </button>
+                    <button onclick="cartManager.addToCart(${product.id})" 
+                            ${product.stock === 0 ? 'disabled' : ''}
+                            style="flex:1; padding:10px; background:${product.stock === 0 ? '#95a5a6' : '#27ae60'}; color:white; border:none; border-radius:4px; cursor:${product.stock === 0 ? 'not-allowed' : 'pointer'}; font-weight:600;">
+                        Add to Cart
+                    </button>
+                </div>
             </div>
         `).join('');
-    } catch (error) {
-        console.error('Error loading reviews:', error);
+    }
+
+    async searchProducts() {
+        const query = document.getElementById('search-input')?.value.trim();
+        if (!query) {
+            this.loadProducts();
+            return;
+        }
+
+        const container = document.getElementById('products-container');
+        const loadingEl = document.getElementById('loading');
+        
+        if (loadingEl) loadingEl.style.display = 'block';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/products?search=${encodeURIComponent(query)}`);
+            
+            if (!response.ok) throw new Error('Search failed');
+            
+            this.products = await response.json();
+            this.renderProducts();
+        } catch (error) {
+            await this.loadProducts();
+            this.products = this.products.filter(p => 
+                p.name.toLowerCase().includes(query.toLowerCase()) ||
+                (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
+            );
+            this.renderProducts();
+        } finally {
+            if (loadingEl) loadingEl.style.display = 'none';
+        }
     }
 }
 
-// Initialize product pages
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('productsGrid') && document.getElementById('categoriesGrid')) {
-        loadFeaturedProducts();
-        loadCategories();
-    }
-    
-    if (document.getElementById('productsGrid') && !document.getElementById('categoriesGrid')) {
-        loadProductsPage();
-    }
-    
-    if (document.getElementById('productDetail')) {
-        loadProductDetail();
-    }
-});
+const productManager = new ProductManager();
