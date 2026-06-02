@@ -3,167 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - Kenya Marketplace</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>All Products - Kenya Marketplace</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        header { background: #2c3e50; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .logo { background: #f39c12; padding: 10px 20px; font-weight: bold; color: #2c3e50; }
+        .search-bar { display: flex; flex: 1; max-width: 400px; margin: 0 20px; }
+        .search-bar input { flex: 1; padding: 10px; border: none; border-radius: 4px 0 0 4px; }
+        .search-bar button { padding: 10px 15px; background: #e67e22; border: none; color: white; border-radius: 0 4px 4px 0; cursor: pointer; }
+        nav a { color: white; text-decoration: none; margin-left: 15px; }
+        .products-page { display: grid; grid-template-columns: 250px 1fr; gap: 20px; max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .filters { background: white; padding: 20px; border-radius: 8px; height: fit-content; }
+        .filter-group { margin-bottom: 20px; }
+        .filter-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .filter-group select, .filter-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px; }
+        .products-section h1 { margin-bottom: 15px; }
+        #loading { text-align: center; padding: 40px; color: #666; }
+        #products-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        @media (max-width: 768px) {
+            .products-page { grid-template-columns: 1fr; }
+            header { flex-direction: column; }
+            .search-bar { margin: 10px 0; width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <img src="../assets/logo.png" alt="Kenya Marketplace">
-            </a>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search products...">
-                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="nav-links">
-                <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
-                <div class="auth-links" id="authLinks">
-                    <a href="login.html" class="btn btn-outline">Login</a>
-                </div>
-                <div class="user-menu" id="userMenu" style="display:none;">
-                    <span id="userName"></span>
-                    <a href="#" onclick="logout()">Logout</a>
-                </div>
-            </div>
+    <header>
+        <div class="logo">KENYA MARKETPLACE</div>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search products...">
+            <button id="search-btn">🔍</button>
         </div>
-    </nav>
+        <nav>
+            <a href="index.html">🏠 Home</a>
+            <a href="cart.html">🛒 Cart <span id="cart-count">0</span></a>
+            <a href="login.html" id="auth-link">Login</a>
+        </nav>
+    </header>
 
-    <div class="products-page">
-        <aside class="filters-sidebar">
+    <main class="products-page">
+        <aside class="filters">
             <h3>Filters</h3>
             <div class="filter-group">
                 <label>Category</label>
-                <select id="categoryFilter" onchange="applyFilters()">
-                    <option value="">All Categories</option>
+                <select id="category-filter">
+                    <option value="All Categories">All Categories</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Home">Home & Garden</option>
+                    <option value="Food">Food & Groceries</option>
+                    <option value="Sports">Sports</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label>Price Range (KES)</label>
-                <input type="number" id="minPrice" placeholder="Min" onchange="applyFilters()">
-                <input type="number" id="maxPrice" placeholder="Max" onchange="applyFilters()">
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="min-price" placeholder="Min">
+                    <input type="number" id="max-price" placeholder="Max">
+                </div>
             </div>
             <div class="filter-group">
                 <label>Sort By</label>
-                <select id="sortBy" onchange="applyFilters()">
-                    <option value="created_at">Newest</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
+                <select id="sort-by">
+                    <option value="newest">Newest</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
                 </select>
+            </div>
+            <div class="filter-group">
+                <button id="apply-filters" style="width:100%; padding:10px; background:#f39c12; border:none; border-radius:4px; cursor:pointer; font-weight:600;">Apply Filters</button>
+                <button id="clear-filters" style="width:100%; padding:10px; background:#ddd; border:none; border-radius:4px; cursor:pointer; margin-top:5px;">Clear</button>
             </div>
         </aside>
 
-        <main class="products-main">
-            <div class="products-header">
-                <h1>All Products</h1>
-                <span id="resultsCount">Loading...</span>
-            </div>
-            <div class="products-grid" id="productsGrid"></div>
-            <div class="pagination"  I notice the response was cut off. Let me continue providing the complete code for all remaining files. I'll generate the rest of the frontend files, admin panel, and CSS/JS files.
+        <section class="products-section">
+            <h1>All Products</h1>
+            <div id="loading">Loading products...</div>
+            <div id="products-container"></div>
+        </section>
+    </main>
 
----
-
-### `frontend/products.html` (continued)
-```html
-            <div class="pagination" id="pagination"></div>
-        </main>
-    </div>
-
-    <script src="js/auth.js"></script>
     <script src="js/products.js"></script>
-    <script>
-        let currentPage = 0;
-        const limit = 12;
-
-        async function loadProducts(page = 0) {
-            currentPage = page;
-            const category = document.getElementById('categoryFilter').value;
-            const minPrice = document.getElementById('minPrice').value;
-            const maxPrice = document.getElementById('maxPrice').value;
-            const sortBy = document.getElementById('sortBy').value;
-            const search = new URLSearchParams(window.location.search).get('search') || '';
-
-            let url = `http://localhost:8000/api/products/?skip=${page * limit}&limit=${limit}&sort_by=${sortBy}`;
-            if (category) url += `&category_id=${category}`;
-            if (minPrice) url += `&min_price=${minPrice}`;
-            if (maxPrice) url += `&max_price=${maxPrice}`;
-            if (search) url += `&search=${encodeURIComponent(search)}`;
-
-            try {
-                const response = await fetch(url);
-                const products = await response.json();
-                
-                const grid = document.getElementById('productsGrid');
-                grid.innerHTML = products.map(product => `
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="${product.images || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23f0f0f0"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="20" fill="%23999" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}" alt="${product.name}">
-                            <button class="wishlist-btn" onclick="addToWishlist(${product.id})"><i class="fas fa-heart"></i></button>
-                        </div>
-                        <div class="product-info">
-                            <h3><a href="product-detail.html?id=${product.id}">${product.name}</a></h3>
-                            <p class="vendor">${product.vendor_name}</p>
-                            <div class="rating">
-                                ${'★'.repeat(Math.floor(product.average_rating))}${'☆'.repeat(5 - Math.floor(product.average_rating))}
-                                <span>(${product.average_rating})</span>
-                            </div>
-                            <div class="product-footer">
-                                <span class="price">KES ${product.price.toLocaleString()}</span>
-                                <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                document.getElementById('resultsCount').textContent = `${products.length} products found`;
-                renderPagination(products.length === limit);
-            } catch (error) {
-                console.error('Error loading products:', error);
-            }
-        }
-
-        function renderPagination(hasMore) {
-            const pagination = document.getElementById('pagination');
-            let html = '';
-            if (currentPage > 0) {
-                html += `<button onclick="loadProducts(${currentPage - 1})" class="btn btn-outline">Previous</button>`;
-            }
-            html += `<span>Page ${currentPage + 1}</span>`;
-            if (hasMore) {
-                html += `<button onclick="loadProducts(${currentPage + 1})" class="btn btn-outline">Next</button>`;
-            }
-            pagination.innerHTML = html;
-        }
-
-        async function loadCategories() {
-            try {
-                const response = await fetch('http://localhost:8000/api/products/categories');
-                const categories = await response.json();
-                const select = document.getElementById('categoryFilter');
-                categories.forEach(cat => {
-                    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading categories:', error);
-            }
-        }
-
-        function applyFilters() {
-            loadProducts(0);
-        }
-
-        function searchProducts() {
-            const query = document.getElementById('searchInput').value;
-            window.location.href = `products.html?search=${encodeURIComponent(query)}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCategories();
-            loadProducts();
-            updateAuthUI();
-        });
-    </script>
 </body>
 </html>
