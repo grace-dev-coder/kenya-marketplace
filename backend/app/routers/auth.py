@@ -1,12 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 import os
 
-from app.database import get_db, execute_query
+from app.database import get_db, execute_query, init_db
+
+# Initialize database on startup
+init_db()
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -27,7 +29,6 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Dependency to get current user from token
 async def get_current_user(authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -50,69 +51,73 @@ async def get_current_user(authorization: str = Header(None)):
 
 @router.post("/register")
 def register(user: dict, db: Session = Depends(get_db)):
-    # Check if user already exists
-    existing = execute_query(
-        "SELECT id FROM users WHERE email = :email",
-        {"email": user.get("email")},
-        fetch=True
-    )
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered. Please login.")
-    
-    # Hash password and create user
-    hashed = get_password_hash(user.get("password"))
-    execute_query(
-        """INSERT INTO users (email, password_hash, full_name, phone, is_vendor, is_admin) 
-           VALUES (:email, :password_hash, :full_name, :phone, FALSE, FALSE)""",
-        {
-            "email": user.get("email"),
-            "password_hash": hashed,
-            "full_name": user.get("full_name", ""),
-            "phone": user.get("phone", "")
-        }
-    )
-    
-    return {"message": "Registration successful! Please login."}
+    try:
+        existing = execute_query(
+            "SELECT id FROM users WHERE email = :email",
+            {"email": user.get("email")},
+            fetch=True
+        )
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered. Please login.")
+        
+        hashed = get_password_hash(user.get("password"))
+        execute_query(
+            """INSERT INTO users (email, password_hash, full_name, phone, is_vendor, is_admin) 
+               VALUES (:email, :password_hash, :full_name, :phone, FALSE, FALSE)""",
+            {
+                "email": user.get("email"),
+                "password_hash": hashed,
+                "full_name": user.get("full_name", ""),
+                "phone": user.get("phone", "")
+            }
+        )
+        
+        return {"message": "Registration successful! Please login."}
+    except Exception as e:
+        print(f"Register error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
 def login(credentials: dict, db: Session = Depends(get_db)):
-    email = credentials.get("email")
-    password = credentials.get("password")
-    
-    # MUST check if user exists first
-    user = execute_query(
-        "SELECT id, email, password_hash, full_name, is_vendor, is_admin FROM users WHERE email = :email",
-        {"email": email},
-        fetch=True
-    )
-    
-    # CRITICAL: If user doesn't exist, force them to register first
-    if not user:
-        raise HTTPException(
-            status_code=404, 
-            detail="User not found. Please register first before logging in."
+    try:
+        email = credentials.get("email")
+        password = credentials.get("password")
+        
+        user = execute_query(
+            "SELECT id, email, password_hash, full_name, is_vendor, is_admin FROM users WHERE email = :email",
+            {"email": email},
+            fetch=True
         )
-    
-    user = user[0]  # Get first result
-    
-    # Verify password
-    if not verify_password(password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Incorrect password")
-    
-    # Create token
-    token = create_access_token({"sub": user["email"], "user_id": user["id"]})
-    
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": user["id"],
-            "email": user["email"],
-            "full_name": user["full_name"],
-            "is_vendor": user["is_vendor"],
-            "is_admin": user["is_admin"]
+        
+        if not user:
+            raise HTTPException(
+                status_code=404, 
+                detail="User not found. Please register first before logging in."
+            )
+        
+        user = user[0]
+        
+        if not verify_password(password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Incorrect password")
+        
+        token = create_access_token({"sub": user["email"], "user_id": user["id"]})
+        
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {
+                "id": user["id"],
+                "email": user["email"],
+                "full_name": user["full_name"],
+                "is_vendor": user["is_vendor"],
+                "is_admin": user["is_admin"]
+            }
         }
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/me")
 def get_current_user_info(current_user: str = Depends(get_current_user)):

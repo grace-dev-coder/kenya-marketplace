@@ -3,15 +3,23 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/kenya_marketplace")
+# Use SQLite for now (no external database needed)
+# For production, switch to PostgreSQL later
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kenya_marketplace.db")
 
-engine = create_engine(DATABASE_URL)
+# For PostgreSQL on Render, they'll provide DATABASE_URL
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(
+    DATABASE_URL, 
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
 def get_db():
-    """Dependency that provides a database session and closes it after use."""
     db = SessionLocal()
     try:
         yield db
@@ -19,13 +27,9 @@ def get_db():
         db.close()
 
 def init_db():
-    """Create all tables defined in models."""
     Base.metadata.create_all(bind=engine)
 
 def execute_query(query: str, params: dict = None, fetch: bool = False):
-    """
-    Execute a raw SQL query. Used by auth.py and other routers.
-    """
     with engine.connect() as connection:
         result = connection.execute(text(query), params or {})
         if fetch:
