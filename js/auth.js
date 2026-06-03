@@ -1,133 +1,181 @@
-// Authentication utilities
+// js/auth.js - Authentication with registration enforcement
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000' 
-    : 'https://kenya-marketplace-api.onrender.com';
+const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
 
-function getToken() {
-    return localStorage.getItem('access_token');
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
+});
+
+// Show error message
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.style.color = '#e74c3c';
+        errorDiv.style.background = '#fdeaea';
+        errorDiv.style.border = '1px solid #e74c3c';
+    }
 }
 
-function getUser() {
+// Show success message
+function showSuccess(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.style.color = '#27ae60';
+        errorDiv.style.background = '#e8f8f5';
+        errorDiv.style.border = '1px solid #27ae60';
+    }
+}
+
+// Clear messages
+function clearMessage() {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+    }
+}
+
+// Handle Login
+async function handleLogin(e) {
+    e.preventDefault();
+    clearMessage();
+    
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    if (!email || !password) {
+        showError('Please fill in all fields');
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            // User not found - force redirect to register
+            if (response.status === 404 || data.detail?.toLowerCase().includes('not found') || data.detail?.toLowerCase().includes('register')) {
+                showError('❌ ' + (data.detail || 'User not found. Please register first.'));
+                setTimeout(() => {
+                    window.location.href = 'register.html';
+                }, 2500);
+                return;
+            }
+            throw new Error(data.detail || 'Login failed');
+        }
+        
+        // Success
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        showSuccess('✅ Login successful! Redirecting...');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1000);
+        
+    } catch (error) {
+        showError('❌ ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Login';
+    }
+}
+
+// Handle Register
+async function handleRegister(e) {
+    e.preventDefault();
+    clearMessage();
+    
+    const fullName = document.getElementById('fullName')?.value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone')?.value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword')?.value;
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    // Validation
+    if (!fullName || !email || !password) {
+        showError('Please fill in all required fields');
+        return;
+    }
+    if (password !== confirmPassword) {
+        showError('Passwords do not match');
+        return;
+    }
+    if (password.length < 6) {
+        showError('Password must be at least 6 characters');
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                full_name: fullName,
+                phone: phone
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.detail || 'Registration failed');
+        }
+        
+        // Success
+        showSuccess('✅ ' + (data.message || 'Registration successful!'));
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+        
+    } catch (error) {
+        showError('❌ ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Register';
+    }
+}
+
+// Logout
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+}
+
+// Check if user is logged in
+function isLoggedIn() {
+    return !!localStorage.getItem('token');
+}
+
+// Get current user
+function getCurrentUser() {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
 }
-
-function isLoggedIn() {
-    return !!getToken();
-}
-
-function isAdmin() {
-    const user = getUser();
-    return user && user.role === 'admin';
-}
-
-function isVendor() {
-    const user = getUser();
-    return user && (user.role === 'vendor' || user.role === 'admin');
-}
-
-function logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    window.location.href = 'index.html';
-}
-
-function updateAuthUI() {
-    const token = getToken();
-    const user = getUser();
-    const authLinks = document.getElementById('authLinks');
-    const userMenu = document.getElementById('userMenu');
-    const userName = document.getElementById('userName');
-
-    if (token && user) {
-        if (authLinks) authLinks.style.display = 'none';
-        if (userMenu) {
-            userMenu.style.display = 'flex';
-            if (userName) userName.textContent = user.full_name.split(' ')[0];
-        }
-        updateCartCount();
-    } else {
-        if (authLinks) authLinks.style.display = 'flex';
-        if (userMenu) userMenu.style.display = 'none';
-    }
-}
-
-async function updateCartCount() {
-    const token = getToken();
-    if (!token) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-        const data = await response.json();
-        const count = data.items ? data.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
-        
-        const cartCountElements = document.querySelectorAll('#cartCount');
-        cartCountElements.forEach(el => el.textContent = count);
-    } catch (error) {
-        console.error('Error updating cart count:', error);
-    }
-}
-
-// Protect routes
-function requireAuth() {
-    if (!isLoggedIn()) {
-        window.location.href = 'login.html';
-        return false;
-    }
-    return true;
-}
-
-function requireAdmin() {
-    if (!isAdmin()) {
-        alert('Admin access required');
-        window.location.href = 'index.html';
-        return false;
-    }
-    return true;
-}
-
-// Add to cart helper
-async function addToCart(productId, quantity = 1) {
-    const token = getToken();
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({product_id: productId, quantity: quantity})
-        });
-
-        if (response.ok) {
-            alert('Added to cart!');
-            updateCartCount();
-        } else {
-            const error = await response.json();
-            alert(error.detail || 'Failed to add to cart');
-        }
-    } catch (error) {
-        alert('Network error. Please try again.');
-    }
-}
-
-// Add to wishlist helper
-async function addToWishlist(productId) {
-    const token = getToken();
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-    alert('Added to wishlist!');
-}
-
-// Initialize auth UI on page load
-document.addEventListener('DOMContentLoaded', updateAuthUI);

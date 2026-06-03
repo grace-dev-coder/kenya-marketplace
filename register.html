@@ -3,388 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account - Kenya Marketplace</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Register - Kenya Marketplace</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #FFE4D6 0%, #E8D5E0 50%, #D4E4F7 100%);
-            min-height: 100vh;
-            color: #1A1A2E;
-            line-height: 1.6;
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: linear-gradient(135deg, #232F3E 0%, #37475A 100%);
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px;
         }
-        a { text-decoration: none; color: inherit; }
-
-        /* Auth Page */
-        .auth-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+        .register-box { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 400px; 
         }
-
-        .auth-card {
-            background: #FFFFFF;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 420px;
+        .register-box h2 { 
+            text-align: center; 
+            margin-bottom: 10px; 
+            color: #232F3E; 
+            font-size: 1.8rem;
+        }
+        .register-box .subtitle {
             text-align: center;
-        }
-
-        .auth-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #FF8C00 0%, #E67E00 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 25px rgba(255,140,0,0.3);
-        }
-
-        .auth-icon svg {
-            width: 32px;
-            height: 32px;
-            color: #FFFFFF;
-        }
-
-        .auth-card h1 {
-            font-size: 1.6rem;
-            margin-bottom: 0.3rem;
-            color: #1A1A2E;
-        }
-
-        .auth-card .subtitle {
-            color: #6C757D;
-            margin-bottom: 1.8rem;
-            font-size: 0.95rem;
-        }
-
-        /* Form Inputs */
-        .form-group {
-            margin-bottom: 1.2rem;
-            text-align: center;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
+            color: #666;
+            margin-bottom: 25px;
             font-size: 0.9rem;
-            color: #2C3E50;
         }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 100%;
+        .form-group { 
+            margin-bottom: 18px; 
         }
-
-        .input-wrapper .input-icon {
-            position: absolute;
-            left: 16px;
-            color: #6C757D;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            pointer-events: none;
-            z-index: 2;
+        .form-group label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 600; 
+            color: #333; 
+            font-size: 14px;
         }
-
-        /* CRITICAL FIX: Icon spacing - 46px left padding */
-        .input-wrapper input,
-        .input-wrapper select,
-        .input-wrapper textarea {
-            width: 100%;
-            padding: 0.85rem 2.5rem 0.85rem 46px;
-            border: 2px solid #E9ECEF;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            background: #FFFFFF;
-            color: #1A1A2E;
+        .form-group input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 15px; 
+        }
+        .form-group input:focus {
             outline: none;
+            border-color: #27ae60;
         }
-
-        .input-wrapper input::placeholder,
-        .input-wrapper textarea::placeholder {
-            color: #B0B0B0;
+        button[type="submit"] { 
+            width: 100%; 
+            padding: 14px; 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: background 0.2s;
         }
-
-        .input-wrapper input:focus,
-        .input-wrapper select:focus,
-        .input-wrapper textarea:focus {
-            border-color: #FF8C00;
-            box-shadow: 0 0 0 4px rgba(255,140,0,0.1);
+        button[type="submit"]:hover { 
+            background: #229954; 
         }
-
-        /* Password toggle */
-        .toggle-password {
-            position: absolute;
-            right: 14px;
-            background: none;
-            border: none;
-            color: #6C757D;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.3rem;
-            z-index: 2;
+        button[type="submit"]:disabled { 
+            background: #95a5a6; 
+            cursor: not-allowed; 
         }
-
-        .toggle-password:hover {
-            color: #FF8C00;
+        #error-message {
+            display: none;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
         }
-
-        /* Checkbox */
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.6rem;
-            margin-bottom: 1.5rem;
-            text-align: left;
+        .login-link { 
+            text-align: center; 
+            margin-top: 20px; 
+            color: #666; 
+            font-size: 14px;
         }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #FF8C00;
-            margin-top: 2px;
-            flex-shrink: 0;
+        .login-link a { 
+            color: #3498db; 
+            text-decoration: none; 
+            font-weight: 700; 
         }
-
-        .checkbox-group label {
-            font-size: 0.85rem;
-            color: #6C757D;
-            line-height: 1.5;
+        .logo-small {
+            text-align: center;
+            margin-bottom: 20px;
         }
-
-        .checkbox-group a {
-            color: #FF8C00;
-            font-weight: 500;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.8rem 2rem;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #FF8C00 0%, #E67E00 100%);
-            color: #FFFFFF;
-            box-shadow: 0 4px 15px rgba(255,140,0,0.3);
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,140,0,0.4);
-        }
-
-        /* Auth Footer */
-        .auth-footer {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #E9ECEF;
-        }
-
-        .auth-footer p {
-            color: #6C757D;
-            font-size: 0.9rem;
-        }
-
-        .auth-footer a {
-            color: #FF8C00;
-            font-weight: 600;
-        }
-
-        .back-home {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            margin-top: 1rem;
-            color: #6C757D;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-home:hover {
-            color: #FF8C00;
-        }
-
-        /* Toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .toast {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            color: #FFFFFF;
-            font-weight: 500;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-            animation: slideIn 0.3s ease;
-            min-width: 280px;
-        }
-
-        .toast.success { background: #27AE60; }
-        .toast.error { background: #E74C3C; }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .auth-card {
-                padding: 1.5rem;
-                margin: 1rem;
-            }
+        .logo-small span {
+            background: #FF9900;
+            color: #232F3E;
+            padding: 8px 15px;
+            font-weight: 900;
+            font-size: 14px;
+            border-radius: 4px;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
-    <div class="auth-page">
-        <div class="auth-card">
-            <div class="auth-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-            </div>
-            <h1>Create Account</h1>
-            <p class="subtitle">Join thousands of happy shoppers</p>
-
-            <form id="registerForm">
-                <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-user"></i></span>
-                        <input type="text" id="fullName" placeholder="Grace Njoroge" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                        <input type="email" id="email" placeholder="your@email.com" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-phone"></i></span>
-                        <input type="tel" id="phone" placeholder="254712345678" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="password" placeholder="Create a strong password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="confirmPassword" placeholder="Repeat your password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="role">Account Type</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-user-tag"></i></span>
-                        <select id="role" required>
-                            <option value="buyer">Buyer - I want to shop</option>
-                            <option value="vendor">Vendor - I want to sell</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="terms" required>
-                    <label for="terms">I agree to the <a href="terms.html">Terms & Conditions</a> and <a href="terms.html">Privacy Policy</a></label>
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Create Account <i class="fas fa-user-plus"></i>
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <p>Already have an account? <a href="login.html">Sign in</a></p>
-                <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
-            </div>
+    <div class="register-box">
+        <div class="logo-small">
+            <span>KENYA MARKETPLACE</span>
         </div>
+        <h2>Create Account</h2>
+        <p class="subtitle">Join Kenya's best marketplace</p>
+        
+        <form id="registerForm">
+            <div id="error-message"></div>
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" required placeholder="John Doe">
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" required placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone" placeholder="254712345678">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="Min 6 characters">
+            </div>
+            
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" required placeholder="Repeat password">
+            </div>
+            
+            <button type="submit">Register</button>
+        </form>
+        
+        <p class="login-link">
+            Already have an account? <a href="login.html">Login here</a>
+        </p>
     </div>
-
-    <div class="toast-container" id="toastContainer"></div>
-
-    <script>
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast ' + type;
-            toast.textContent = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            showToast('Account created successfully!', 'success');
-            setTimeout(() => window.location.href = 'login.html', 1500);
-        });
-    </script>
+    
+    <script src="js/auth.js"></script>
 </body>
 </html>
