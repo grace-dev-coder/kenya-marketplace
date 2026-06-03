@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Show error message
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
     if (errorDiv) {
@@ -23,10 +22,12 @@ function showError(message) {
         errorDiv.style.color = '#e74c3c';
         errorDiv.style.background = '#fdeaea';
         errorDiv.style.border = '1px solid #e74c3c';
+        errorDiv.style.padding = '12px';
+        errorDiv.style.borderRadius = '4px';
+        errorDiv.style.marginBottom = '20px';
     }
 }
 
-// Show success message
 function showSuccess(message) {
     const errorDiv = document.getElementById('error-message');
     if (errorDiv) {
@@ -35,10 +36,12 @@ function showSuccess(message) {
         errorDiv.style.color = '#27ae60';
         errorDiv.style.background = '#e8f8f5';
         errorDiv.style.border = '1px solid #27ae60';
+        errorDiv.style.padding = '12px';
+        errorDiv.style.borderRadius = '4px';
+        errorDiv.style.marginBottom = '20px';
     }
 }
 
-// Clear messages
 function clearMessage() {
     const errorDiv = document.getElementById('error-message');
     if (errorDiv) {
@@ -47,7 +50,6 @@ function clearMessage() {
     }
 }
 
-// Handle Login
 async function handleLogin(e) {
     e.preventDefault();
     clearMessage();
@@ -74,9 +76,8 @@ async function handleLogin(e) {
         const data = await response.json();
         
         if (!response.ok) {
-            // User not found - force redirect to register
             if (response.status === 404 || data.detail?.toLowerCase().includes('not found') || data.detail?.toLowerCase().includes('register')) {
-                showError('❌ ' + (data.detail || 'User not found. Please register first.'));
+                showError('❌ User not found. Please register first.');
                 setTimeout(() => {
                     window.location.href = 'register.html';
                 }, 2500);
@@ -85,7 +86,6 @@ async function handleLogin(e) {
             throw new Error(data.detail || 'Login failed');
         }
         
-        // Success
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         showSuccess('✅ Login successful! Redirecting...');
@@ -94,14 +94,13 @@ async function handleLogin(e) {
         }, 1000);
         
     } catch (error) {
-        showError('❌ ' + error.message);
+        showError('❌ ' + (error.message || 'Failed to fetch. Backend may be sleeping (wait 30s) or CORS error.'));
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Login';
     }
 }
 
-// Handle Register
 async function handleRegister(e) {
     e.preventDefault();
     clearMessage();
@@ -113,7 +112,6 @@ async function handleRegister(e) {
     const confirmPassword = document.getElementById('confirmPassword')?.value;
     const submitBtn = document.querySelector('button[type="submit"]');
     
-    // Validation
     if (!fullName || !email || !password) {
         showError('Please fill in all required fields');
         return;
@@ -148,33 +146,29 @@ async function handleRegister(e) {
             throw new Error(data.detail || 'Registration failed');
         }
         
-        // Success
-        showSuccess('✅ ' + (data.message || 'Registration successful!'));
+        showSuccess('✅ Registration successful! Please login.');
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 2000);
         
     } catch (error) {
-        showError('❌ ' + error.message);
+        showError('❌ ' + (error.message || 'Failed to fetch. Backend may be sleeping (wait 30s) or CORS error.'));
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Register';
     }
 }
 
-// Logout
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
 
-// Check if user is logged in
 function isLoggedIn() {
     return !!localStorage.getItem('token');
 }
 
-// Get current user
 function getCurrentUser() {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
