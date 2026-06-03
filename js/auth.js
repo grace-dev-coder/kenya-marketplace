@@ -1,17 +1,57 @@
-// js/auth.js - Authentication with registration enforcement
+// js/auth.js - Authentication with backend wake-up handling
 
 const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
+
+// Demo mode: Store users locally when backend is sleeping
+const DEMO_USERS_KEY = 'demo_users';
+const getDemoUsers = () => JSON.parse(localStorage.getItem(DEMO_USERS_KEY) || '[]');
+const saveDemoUser = (user) => {
+    const users = getDemoUsers();
+    users.push(user);
+    localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
+};
+const findDemoUser = (email) => getDemoUsers().find(u => u.email === email);
+
+// Wake up backend (Render free tier sleeps after 15 min)
+async function wakeUpBackend() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for wake-up
+        await fetch(`${API_BASE_URL.replace('/api', '')}/health`, { 
+            method: 'GET',
+            signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+        return true;
+    } catch (e) {
+        console.log('Backend wake-up attempt failed:', e.message);
+        return false;
+    }
+}
+
+// Check if backend is awake
+let backendAwake = false;
+async function checkBackend() {
+    if (backendAwake) return true;
+    try {
+        const response = await fetch(`${API_BASE_URL.replace('/api', '')}/`, { 
+            method: 'GET',
+            signal: AbortSignal.timeout(5000)
+        });
+        backendAwake = response.ok;
+        return backendAwake;
+    } catch (e) {
+        backendAwake = false;
+        return false;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    if (registerForm) {
-        registerForm.addEventListener('submit', handleRegister);
-    }
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    if (registerForm) registerForm.addEventListener('submit', handleRegister);
 });
 
 function showError(message) {
@@ -25,6 +65,7 @@ function showError(message) {
         errorDiv.style.padding = '12px';
         errorDiv.style.borderRadius = '4px';
         errorDiv.style.marginBottom = '20px';
+        errorDiv.style.textAlign = 'center';
     }
 }
 
@@ -39,6 +80,7 @@ function showSuccess(message) {
         errorDiv.style.padding = '12px';
         errorDiv.style.borderRadius = '4px';
         errorDiv.style.marginBottom = '20px';
+        errorDiv.style.textAlign = 'center';
     }
 }
 
@@ -48,6 +90,16 @@ function clearMessage() {
         errorDiv.style.display = 'none';
         errorDiv.textContent = '';
     }
+}
+
+function showLoading(btn, text) {
+    btn.disabled = true;
+    btn.textContent = text;
+}
+
+function resetBtn(btn, text) {
+    btn.disabled = false;
+    btn.textContent = text;
 }
 
 async function handleLogin(e) {
@@ -63,24 +115,31 @@ async function handleLogin(e) {
         return;
     }
     
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Logging in...';
+    showLoading(submitBtn, 'Waking up backend...');
+    
+    // Try to wake up backend first
+    await wakeUpBackend();
+    
+    showLoading(submitBtn, 'Logging in...');
     
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+        
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
         
         const data = await response.json();
         
         if (!response.ok) {
             if (response.status === 404 || data.detail?.toLowerCase().includes('not found') || data.detail?.toLowerCase().includes('register')) {
                 showError('❌ User not found. Please register first.');
-                setTimeout(() => {
-                    window.location.href = 'register.html';
-                }, 2500);
+                setTimeout(() => window.location.href = 'register.html', 2500);
                 return;
             }
             throw new Error(data.detail || 'Login failed');
@@ -89,15 +148,16 @@ async function handleLogin(e) {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         showSuccess('✅ Login successful! Redirecting...');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
+        setTimeout(() => window.location.href = 'index.html', 1000);
         
     } catch (error) {
-        showError('❌ ' + (error.message || 'Failed to fetch. Backend may be sleeping (wait 30s) or CORS error.'));
+        if (error.name === 'AbortError') {
+            showError('❌ Request timed out. Backend is sleeping. Please try again in 30 seconds.');
+        } else {
+            showError('❌ ' + (error.message || 'Failed to connect. Please try again.'));
+        }
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Login';
+        resetBtn(submitBtn, 'Login');
     }
 }
 
@@ -125,10 +185,15 @@ async function handleRegister(e) {
         return;
     }
     
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating account...';
+    showLoading(submitBtn, 'Waking up backend...');
+    await wakeUpBackend();
+    
+    showLoading(submitBtn, 'Creating account...');
     
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+        
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -137,8 +202,10 @@ async function handleRegister(e) {
                 password: password,
                 full_name: fullName,
                 phone: phone
-            })
+            }),
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
         
         const data = await response.json();
         
@@ -147,15 +214,16 @@ async function handleRegister(e) {
         }
         
         showSuccess('✅ Registration successful! Please login.');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 2000);
+        setTimeout(() => window.location.href = 'login.html', 2000);
         
     } catch (error) {
-        showError('❌ ' + (error.message || 'Failed to fetch. Backend may be sleeping (wait 30s) or CORS error.'));
+        if (error.name === 'AbortError') {
+            showError('❌ Request timed out. Backend is sleeping. Please wait 30s and try again.');
+        } else {
+            showError('❌ ' + (error.message || 'Failed to connect. Please try again.'));
+        }
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Register';
+        resetBtn(submitBtn, 'Register');
     }
 }
 
