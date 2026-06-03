@@ -8,6 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; }
         
+        /* Header - Logo left, Register/Login right */
         .main-header {
             background: #232F3E;
             color: white;
@@ -15,23 +16,23 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
         }
         .logo-fallback {
             background: #FF9900;
             color: #232F3E;
             padding: 10px 18px;
             font-weight: 900;
-            font-size: 15px;
+            font-size: 14px;
             border-radius: 4px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .search-bar {
             display: flex;
             flex: 1;
             max-width: 400px;
-            min-width: 200px;
+            min-width: 150px;
         }
         .search-bar input {
             flex: 1;
@@ -49,47 +50,42 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .header-actions {
+        
+        /* Auth buttons - Register first, Login second */
+        .auth-buttons {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-shrink: 0;
         }
-        .header-actions a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            transition: opacity 0.2s;
-        }
-        /* Register first - more prominent */
         .btn-register {
             background: #27ae60;
             padding: 10px 20px;
             border-radius: 4px;
-            color: white !important;
+            color: white;
+            text-decoration: none;
             font-weight: 700;
-            order: 1; /* First */
+            font-size: 14px;
+            white-space: nowrap;
         }
-        .btn-register:hover {
-            background: #229954;
-        }
-        /* Login second - subtle */
         .btn-login {
             background: #5dade2;
             padding: 10px 20px;
             border-radius: 4px;
-            color: white !important;
+            color: white;
+            text-decoration: none;
             font-weight: 600;
-            order: 2; /* Second */
-        }
-        .btn-login:hover {
-            background: #3498db;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .cart-link {
-            order: 3;
+            color: white;
+            text-decoration: none;
             font-size: 16px;
+            margin-left: 5px;
         }
         
+        /* Hero Section */
         .hero {
             background: linear-gradient(135deg, #232F3E 0%, #37475A 100%);
             color: white;
@@ -116,6 +112,7 @@
             font-weight: 700;
         }
         
+        /* Features */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -131,18 +128,9 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        .feature h3 {
-            margin-bottom: 8px;
-            color: #232F3E;
-        }
-        .feature p {
-            color: #666;
-            font-size: 0.9rem;
-        }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .feature h3 { margin-bottom: 8px; color: #232F3E; }
+        .feature p { color: #666; font-size: 0.9rem; }
         
         footer {
             background: #232F3E;
@@ -153,9 +141,9 @@
         }
         
         @media (max-width: 600px) {
-            .main-header { flex-direction: column; align-items: stretch; }
-            .search-bar { max-width: 100%; margin: 10px 0; }
-            .header-actions { justify-content: center; }
+            .main-header { flex-wrap: wrap; }
+            .search-bar { order: 3; width: 100%; max-width: 100%; margin: 5px 0; }
+            .auth-buttons { order: 2; }
         }
     </style>
 </head>
@@ -168,7 +156,7 @@
             <button id="searchBtn">🔍</button>
         </div>
         
-        <div class="header-actions">
+        <div class="auth-buttons">
             <a href="register.html" class="btn-register">Register</a>
             <a href="login.html" class="btn-login">Login</a>
             <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
