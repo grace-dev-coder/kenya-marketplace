@@ -23,9 +23,9 @@ def get_db():
         db.close()
 
 def init_db():
-    """Create all tables and add missing columns"""
+    """Create all tables with correct schema"""
     with engine.connect() as conn:
-        # Drop old tables if schema mismatch (simplest fix for SQLite)
+        # Drop old tables to ensure clean schema
         conn.execute(text("DROP TABLE IF EXISTS order_items"))
         conn.execute(text("DROP TABLE IF EXISTS cart_items"))
         conn.execute(text("DROP TABLE IF EXISTS reviews"))
@@ -34,7 +34,7 @@ def init_db():
         conn.execute(text("DROP TABLE IF EXISTS products"))
         conn.execute(text("DROP TABLE IF EXISTS users"))
         
-        # Users table
+        # Users table with ALL required columns
         conn.execute(text("""
             CREATE TABLE users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,7 +76,7 @@ def init_db():
             )
         """))
         
-        # Order items table
+        # Order items
         conn.execute(text("""
             CREATE TABLE order_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +87,7 @@ def init_db():
             )
         """))
         
-        # Cart items table
+        # Cart items
         conn.execute(text("""
             CREATE TABLE cart_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +97,7 @@ def init_db():
             )
         """))
         
-        # Reviews table
+        # Reviews
         conn.execute(text("""
             CREATE TABLE reviews (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,7 +109,7 @@ def init_db():
             )
         """))
         
-        # Payments table
+        # Payments
         conn.execute(text("""
             CREATE TABLE payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
