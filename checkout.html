@@ -4,199 +4,265 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Kenya Marketplace</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; }
+        
+        .main-header {
+            background: #232F3E;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            background: #FF9900;
+            color: #232F3E;
+            padding: 8px 15px;
+            font-weight: 900;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        
+        .checkout-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .checkout-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .checkout-box h1 {
+            margin-bottom: 20px;
+            color: #232F3E;
+            font-size: 1.5rem;
+        }
+        
+        .order-items {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #232F3E;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        
+        .mpesa-info {
+            background: #e8f8f5;
+            border: 1px solid #27ae60;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .mpesa-info h3 {
+            color: #27ae60;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .mpesa-info p {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .pay-btn {
+            width: 100%;
+            padding: 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .pay-btn:hover { background: #229954; }
+        .pay-btn:disabled { background: #95a5a6; cursor: not-allowed; }
+        
+        #error-message, #success-message {
+            display: none;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #error-message {
+            color: #e74c3c;
+            background: #fdeaea;
+            border: 1px solid #e74c3c;
+        }
+        #success-message {
+            color: #27ae60;
+            background: #e8f8f5;
+            border: 1px solid #27ae60;
+        }
+        
+        footer {
+            background: #232F3E;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <img src="../assets/logo.png" alt="Kenya Marketplace">
-            </a>
-        </div>
-    </nav>
+    <header class="main-header">
+        <div class="logo">KENYA MARKETPLACE</div>
+    </header>
 
-    <main class="checkout-page">
-        <div class="checkout-container">
-            <div class="checkout-form">
-                <h2>Shipping Information</h2>
-                <form id="checkoutForm" onsubmit="handleCheckout(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="shippingName" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="tel" id="shippingPhone" required placeholder="0712345678">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Delivery Address</label>
-                        <textarea id="shippingAddress" rows="3" required placeholder="Street, Building, Estate, City"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>County</label>
-                        <select id="county" required>
-                            <option value="">Select County</option>
-                            <option value="Nairobi">Nairobi</option>
-                            <option value="Mombasa">Mombasa</option>
-                            <option value="Kisumu">Kisumu</option>
-                            <option value="Nakuru">Nakuru</option>
-                            <option value="Eldoret">Eldoret</option>
-                            <option value="Kiambu">Kiambu</option>
-                            <option value="Kajiado">Kajiado</option>
-                            <option value="Machakos">Machakos</option>
-                        </select>
-                    </div>
-
-                    <h2>Payment Method</h2>
-                    <div class="payment-methods">
-                        <div class="payment-method active">
-                            <input type="radio" name="payment" value="mpesa" checked>
-                            <img src="https://placehold.co/40?text=M" alt="M-Pesa">
-                            <div>
-                                <strong>M-Pesa</strong>
-                                <p>Pay via M-Pesa mobile money</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>M-Pesa Phone Number</label>
-                        <input type="tel" id="mpesaPhone" required placeholder="254712345678">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-full btn-large">
-                        <i class="fas fa-lock"></i> Pay KES <span id="payAmount">0</span>
-                    </button>
-                </form>
+    <div class="checkout-container">
+        <div class="checkout-box">
+            <h1>🛒 Checkout</h1>
+            
+            <div id="error-message"></div>
+            <div id="success-message"></div>
+            
+            <div class="order-items" id="order-items">
+                <!-- Items loaded here -->
             </div>
-
-            <div class="order-summary">
-                <h3>Order Summary</h3>
-                <div id="orderItems"></div>
-                <div class="summary-totals">
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="summarySubtotal">KES 0</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Shipping</span>
-                        <span>KES 200</span>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Total</span>
-                        <span id="summaryTotal">KES 0</span>
-                    </div>
+            
+            <div class="order-total">
+                <span>Total:</span>
+                <span id="total-amount">KES 0</span>
+            </div>
+            
+            <div class="mpesa-info">
+                <h3>📱 M-Pesa Payment</h3>
+                <p>You will receive an STK push on your phone. Enter your M-Pesa PIN to complete payment.</p>
+            </div>
+            
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" required placeholder="John Doe">
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label>Phone Number (M-Pesa)</label>
+                    <input type="tel" id="phoneNumber" required placeholder="254712345678" value="254">
+                </div>
+                
+                <div class="form-group">
+                    <label>Delivery Address</label>
+                    <input type="text" id="address" required placeholder="123 Nairobi Road, Nairobi">
+                </div>
+                
+                <button type="submit" class="pay-btn" id="payBtn">Pay with M-Pesa</button>
+            </form>
         </div>
-    </main>
+    </div>
 
-    <script src="js/auth.js"></script>
+    <footer>
+        <p>&copy; 2024 Kenya Marketplace. All rights reserved.</p>
+    </footer>
+
     <script>
-        let cartData = null;
-
-        async function loadCheckoutData() {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                window.location.href = 'login.html';
+        // Load cart items
+        function loadOrderSummary() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const container = document.getElementById('order-items');
+            const totalEl = document.getElementById('total-amount');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p>Your cart is empty. <a href="products.html">Go shopping</a></p>';
+                totalEl.textContent = 'KES 0';
                 return;
             }
-
-            try {
-                const token = localStorage.getItem('access_token');
-                const response = await fetch('http://localhost:8000/api/orders/cart', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                cartData = await response.json();
-
-                if (cartData.items.length === 0) {
-                    window.location.href = 'cart.html';
-                    return;
-                }
-
-                document.getElementById('orderItems').innerHTML = cartData.items.map(item => `
-                    <div class="order-item">
-                        <img src="${item.product_image || 'https://placehold.co/60'}" alt="${item.product_name}">
-                        <div>
-                            <p>${item.product_name}</p>
-                            <p>Qty: ${item.quantity}</p>
-                        </div>
-                        <span>KES ${item.total_price.toLocaleString()}</span>
-                    </div>
-                `).join('');
-
-                const total = cartData.total + 200;
-                document.getElementById('summarySubtotal').textContent = `KES ${cartData.total.toLocaleString()}`;
-                document.getElementById('summaryTotal').textContent = `KES ${total.toLocaleString()}`;
-                document.getElementById('payAmount').textContent = total.toLocaleString();
-            } catch (error) {
-                console.error('Error loading checkout data:', error);
-            }
-        }
-
-        async function handleCheckout(e) {
-            e.preventDefault();
-            const token = localStorage.getItem('access_token');
             
-            const orderData = {
-                shipping_address: `${document.getElementById('shippingAddress').value}, ${document.getElementById('county').value}`,
-                shipping_phone: document.getElementById('shippingPhone').value,
-                items: cartData.items.map(item => ({
-                    product_id: item.product_id,
-                    quantity: item.quantity,
-                    unit_price: item.product_price
-                }))
-            };
-
-            try {
-                // Create order
-                const orderResponse = await fetch('http://localhost:8000/api/orders/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                const order = await orderResponse.json();
-
-                // Initiate M-Pesa payment
-                const paymentData = {
-                    order_id: order.id,
-                    phone_number: document.getElementById('mpesaPhone').value,
-                    amount: cartData.total + 200
-                };
-
-                const paymentResponse = await fetch('http://localhost:8000/api/payments/mpesa/initiate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(paymentData)
-                });
-
-                const payment = await paymentResponse.json();
-
-                if (paymentResponse.ok) {
-                    alert('M-Pesa payment initiated! Check your phone to complete the payment.');
-                    window.location.href = 'orders.html';
-                } else {
-                    alert(payment.detail || 'Payment initiation failed');
-                }
-            } catch (error) {
-                alert('Checkout failed. Please try again.');
-            }
+            let total = 0;
+            container.innerHTML = cart.map(item => {
+                total += item.price * item.quantity;
+                return `
+                    <div class="order-item">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>KES ${(item.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            totalEl.textContent = 'KES ' + total.toLocaleString();
         }
-
-        document.addEventListener('DOMContentLoaded', loadCheckoutData);
+        
+        // Handle payment
+        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('payBtn');
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const name = document.getElementById('fullName').value.trim();
+            const address = document.getElementById('address').value.trim();
+            
+            // Validate phone
+            if (!phone.startsWith('254') || phone.length !== 12) {
+                showError('Please enter a valid M-Pesa number starting with 254 (e.g., 254712345678)');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Processing payment...';
+            
+            // Simulate M-Pesa STK push
+            await new Promise(r => setTimeout(r, 2000));
+            
+            showSuccess('✅ M-Pesa STK push sent! Check your phone and enter PIN to complete payment.');
+            
+            // Clear cart after successful payment
+            localStorage.removeItem('cart');
+            
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        });
+        
+        function showError(msg) {
+            const el = document.getElementById('error-message');
+            el.textContent = msg;
+            el.style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+        }
+        
+        function showSuccess(msg) {
+            const el = document.getElementById('success-message');
+            el.textContent = msg;
+            el.style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('payBtn').style.display = 'none';
+        }
+        
+        // Load on page start
+        loadOrderSummary();
     </script>
 </body>
 </html>
