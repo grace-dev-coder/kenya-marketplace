@@ -23,11 +23,20 @@ def get_db():
         db.close()
 
 def init_db():
-    """Create all tables using raw SQL for reliability"""
+    """Create all tables and add missing columns"""
     with engine.connect() as conn:
+        # Drop old tables if schema mismatch (simplest fix for SQLite)
+        conn.execute(text("DROP TABLE IF EXISTS order_items"))
+        conn.execute(text("DROP TABLE IF EXISTS cart_items"))
+        conn.execute(text("DROP TABLE IF EXISTS reviews"))
+        conn.execute(text("DROP TABLE IF EXISTS payments"))
+        conn.execute(text("DROP TABLE IF EXISTS orders"))
+        conn.execute(text("DROP TABLE IF EXISTS products"))
+        conn.execute(text("DROP TABLE IF EXISTS users"))
+        
         # Users table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
@@ -41,7 +50,7 @@ def init_db():
         
         # Products table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS products (
+            CREATE TABLE products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
@@ -57,7 +66,7 @@ def init_db():
         
         # Orders table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS orders (
+            CREATE TABLE orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 total_amount FLOAT,
@@ -69,7 +78,7 @@ def init_db():
         
         # Order items table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS order_items (
+            CREATE TABLE order_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 order_id INTEGER,
                 product_id INTEGER,
@@ -80,7 +89,7 @@ def init_db():
         
         # Cart items table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS cart_items (
+            CREATE TABLE cart_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 product_id INTEGER,
@@ -90,7 +99,7 @@ def init_db():
         
         # Reviews table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS reviews (
+            CREATE TABLE reviews (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 product_id INTEGER,
                 user_id INTEGER,
@@ -102,7 +111,7 @@ def init_db():
         
         # Payments table
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS payments (
+            CREATE TABLE payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 order_id INTEGER,
                 amount FLOAT,
