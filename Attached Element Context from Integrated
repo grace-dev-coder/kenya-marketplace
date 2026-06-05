@@ -1,0 +1,52 @@
+Attached Element Context from Integrated Browser
+
+Element: div#errorMessage.error-message
+
+URL: http://0.0.0.0:3001/
+
+HTML Path: div.admin-login-container > div.admin-login-box > div#errorMessage.error-message
+
+Outer HTML:
+```html
+<div id="errorMessage" class="error-message">(sqlite3.OperationalError) no such column: is_vendor
+[SQL: SELECT id, email, password_hash, full_name, is_vendor, is_admin FROM users WHERE email = ?]
+[parameters: ('admin@kenyamarketplace.co.ke',)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)</div>
+```
+
+Dimensions:
+- top: 402px
+- left: 602px
+- width: 308px
+- height: 135px
+
+CSS:
+```css
+* { margin: 0;
+    padding: 0;
+    box-sizing: border-box; }
+.error-message { color: var(--danger);
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem; }
+
+/* Inherited */
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text-primary) }
+
+/* Resolved values */
+margin: 16px 0px 0px;
+padding: 0px;
+box-sizing: border-box;
+color: rgb(245, 101, 101);
+display: block;
+font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+font-size: 14.4px;
+height: 119px;
+text-align: center;
+unicode-bidi: isolate /*UA*/;
+width: 308px;
+
+/* CSS variables */
+--text-primary: #2d3748;
+--danger: #f56565;
+```

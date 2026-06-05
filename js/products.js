@@ -1,6 +1,5 @@
 const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
 
-// Demo products with fallback images that work reliably
 const DEMO_PRODUCTS = [
     {id: 1, name: "Samsung Galaxy A54", description: "6.4 AMOLED, 128GB, 5000mAh", price: 45000, category: "Electronics", stock: 15, image_url: "https://images.unsplash.com/photo-1610945265078-3858a0828671?w=400&auto=format&fit=crop"},
     {id: 2, name: "Nike Air Force 1", description: "Classic white sneakers, size 40-45", price: 8500, category: "Fashion", stock: 30, image_url: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&auto=format&fit=crop"},
@@ -107,7 +106,7 @@ class ProductManager {
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button onclick="window.location.href='product-detail.html?id=${product.id}'" 
                                 style="flex:1; padding:10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">View</button>
-                        <button onclick="alert('Added to cart!')" 
+                        <button onclick="addToCart(${product.id})" 
                                 ${product.stock === 0 ? 'disabled' : ''}
                                 style="flex:1; padding:10px; background:${product.stock === 0 ? '#95a5a6' : '#27ae60'}; color:white; border:none; border-radius:4px; cursor:${product.stock === 0 ? 'not-allowed' : 'pointer'};">Add to Cart</button>
                     </div>
@@ -116,5 +115,51 @@ class ProductManager {
         `).join('');
     }
 }
+
+// GLOBAL addToCart function
+function addToCart(productId) {
+    const product = DEMO_PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Get existing cart
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Check if already in cart
+    const existingItem = cart.find(item => item.id === productId);
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url,
+            quantity: 1
+        });
+    }
+    
+    // Save cart
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Update cart count on ALL pages
+    updateCartCount();
+    
+    // Show feedback
+    alert(`✅ ${product.name} added to cart!`);
+}
+
+// GLOBAL updateCartCount function
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Update all cart count elements on the page
+    document.querySelectorAll('#cartCount, #cart-count').forEach(el => {
+        el.textContent = totalItems;
+    });
+}
+
+// Initialize cart count on page load
+document.addEventListener('DOMContentLoaded', updateCartCount);
 
 const productManager = new ProductManager();
