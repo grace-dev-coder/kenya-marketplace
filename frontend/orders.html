@@ -32,6 +32,8 @@
 
     <script src="js/auth.js"></script>
     <script>
+        const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+
         async function loadOrders() {
             const token = localStorage.getItem('access_token');
             if (!token) {
@@ -40,9 +42,14 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8000/api/orders/', {
+                const response = await fetch(`${API_BASE_URL}/api/orders/`, {
                     headers: {'Authorization': `Bearer ${token}`}
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const orders = await response.json();
 
                 if (orders.length === 0) {
@@ -75,17 +82,21 @@
                 }
             } catch (error) {
                 console.error('Error loading orders:', error);
+                document.getElementById('ordersList').innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load orders. Please try again.</p>
+                    </div>
+                `;
             }
         }
 
         function viewOrderDetails(orderId) {
-            // Implementation for order detail modal or page
             alert('Order details feature coming soon');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadOrders();
             updateAuthUI();
+            loadOrders();
         });
     </script>
 </body>
