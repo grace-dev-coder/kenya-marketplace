@@ -3,9 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.routers import auth, products, orders, payments, vendors, admin, reviews
 
-# Create tables once
-init_db()
-
 app = FastAPI(title="Kenya Marketplace API")
 
 app.add_middleware(
@@ -15,6 +12,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize DB on startup (not at import time)
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 # No prefix here - it's in the router files
 app.include_router(auth.router)
