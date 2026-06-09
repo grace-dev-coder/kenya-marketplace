@@ -3,125 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal - Kenya Marketplace</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Admin Login - Kenya Marketplace</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-        .auth-card {
-            background: #FFFFFF;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-        }
-        .logo {
-            background: #FF9900;
-            color: #1A1A2E;
-            padding: 12px 24px;
-            font-weight: 900;
-            font-size: 16px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 1.5rem;
-        }
-        h2 { color: #1A1A2E; margin-bottom: 0.5rem; font-size: 1.8rem; }
-        .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #FF9900;
-        }
-        
-        button[type="submit"] {
-            width: 100%;
-            padding: 14px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button[type="submit"]:hover { background: #2980b9; }
-        button[type="submit"]:disabled { background: #95a5a6; cursor: not-allowed; }
-        
-        #error-message {
-            display: none;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-        
-        .back-link {
-            margin-top: 1.5rem;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        .back-link a {
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 600;
-        }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-container { background: #fff; padding: 40px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; }
+        .logo { background: #ff8c00; color: #fff; padding: 10px 20px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
+        h2 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 25px; font-size: 14px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #3498db; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #2980b9; }
+        #error-message { display: none; color: #dc3545; margin-top: 10px; font-size: 14px; }
+        .login-footer { margin-top: 20px; }
+        .back-link { color: #888; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="auth-card">
-        <div class="logo">KENYA MARKETPLACE</div>
+    <div class="login-container">
+        <div class="logo">KENYA<br>MARKETPLACE</div>
         <h2>Admin Portal</h2>
         <p class="subtitle">Secure access for administrators</p>
         
-        <form id="adminLoginForm">
-            <div id="error-message"></div>
-            
+        <form id="admin-login-form" onsubmit="return false;">
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" id="email" required placeholder="admin@kenyamarketplace.co.ke" value="admin@kenyamarketplace.co.ke">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required value="admin@kenyamarketplace.co.ke">
             </div>
-            
             <div class="form-group">
-                <label>Password</label>
+                <label for="password">Password</label>
                 <input type="password" id="password" required placeholder="Enter password">
             </div>
-            
-            <button type="submit">Login to Dashboard</button>
+            <button type="button" onclick="doLogin()">Login to Dashboard</button>
         </form>
         
-        <p class="back-link">
-            <a href="../index.html">← Back to Store</a>
-        </p>
+        <div id="error-message"></div>
+        
+        <div class="login-footer">
+            <a href="http://localhost:3000/index.html" class="back-link">← Back to Store</a>
+        </div>
     </div>
-    
-    <script src="js/admin-auth.js"></script>
+
+    <script>
+        function doLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+            
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+                errorMessage.textContent = '';
+            }
+
+            fetch('http://localhost:8000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.is_admin) {
+                    if (errorMessage) {
+                        errorMessage.textContent = 'Access denied. Admin only';
+                        errorMessage.style.display = 'block';
+                    }
+                } else {
+                    localStorage.setItem('admin_token', data.access_token);
+                    localStorage.setItem('is_admin', '1');
+                    window.location.href = 'dashboard.html';
+                }
+            })
+            .catch(error => {
+                if (errorMessage) {
+                    errorMessage.textContent = error.message;
+                    errorMessage.style.display = 'block';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
