@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import init_db
-from app.routers import auth, products, orders, payments, vendors, admin, reviews
+import traceback
+import sys
 
 app = FastAPI(title="Kenya Marketplace API")
 
@@ -13,12 +13,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize DB on startup (not at import time)
 @app.on_event("startup")
 def on_startup():
-    init_db()
+    try:
+        from app.database import init_db
+        init_db()
+        print("✅ Database initialized successfully", file=sys.stderr)
+    except Exception as e:
+        print(f"❌ Database init failed: {e}", file=sys.stderr)
+        traceback.print_exc()
+        # Don't re-raise — let the app start so you can see /health
+        # Remove the pass and uncomment raise after debugging
+        # raise e
 
-# No prefix here - it's in the router files
+# Import routers AFTER startup event is defined
+from app.routers import auth, products, orders, payments, vendors, admin, reviews
+
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(orders.router)
