@@ -1,7 +1,7 @@
 // Checkout-specific functions
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000' 
+    ? 'https://kenya-marketplace-api.onrender.com' 
     : 'https://kenya-marketplace-api.onrender.com';
 
 async function loadCheckoutSummary() {
