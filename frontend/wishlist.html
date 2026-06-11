@@ -30,28 +30,72 @@
         </div>
     </main>
 
-    <script src="js/auth.js"></script>
     <script>
+        // ─── INLINE AUTH FUNCTIONS ─────────────────────────────────────
+        
+        const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+
+        function getToken() {
+            return localStorage.getItem('access_token') || localStorage.getItem('token');
+        }
+
+        function getUser() {
+            try {
+                return JSON.parse(localStorage.getItem('user') || 'null');
+            } catch {
+                return null;
+            }
+        }
+
+        function updateAuthUI() {
+            const token = getToken();
+            const user = getUser();
+            const userMenu = document.getElementById('userMenu');
+            const userName = document.getElementById('userName');
+            
+            if (token && user) {
+                if (userMenu) userMenu.style.display = 'flex';
+                if (userName) userName.textContent = user.full_name || user.email || 'User';
+            } else {
+                if (userMenu) userMenu.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // ─── WISHLIST ──────────────────────────────────────────────────
+
         async function loadWishlist() {
-            const token = localStorage.getItem('access_token');
+            const token = getToken();
             if (!token) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // This would fetch from a wishlist endpoint
+            // TODO: Replace with actual API call when wishlist endpoint is ready
+            // const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+            //     headers: {'Authorization': `Bearer ${token}`}
+            // });
+            // const items = await response.json();
+
             document.getElementById('wishlistGrid').innerHTML = `
-                <div class="empty-wishlist">
-                    <i class="fas fa-heart"></i>
-                    <p>Your wishlist is empty</p>
-                    <a href="products.html" class="btn btn-primary">Discover Products</a>
+                <div class="empty-wishlist" style="text-align:center; padding:60px 20px;">
+                    <i class="fas fa-heart" style="font-size:48px; color:#ccc; margin-bottom:20px;"></i>
+                    <h2>Your wishlist is empty</h2>
+                    <p>Save items you love and find them here anytime.</p>
+                    <a href="products.html" class="btn btn-primary" style="margin-top:20px;">Discover Products</a>
                 </div>
             `;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadWishlist();
             updateAuthUI();
+            loadWishlist();
         });
     </script>
 </body>
