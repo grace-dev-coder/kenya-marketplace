@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
+from jose import jwt
 import os
 
 from app.database import get_db
@@ -31,6 +31,44 @@ def authenticate_user(db: Session, email: str, password: str):
         return False
     return user
 
+@router.post("/register")
+async def register(request: Request, db: Session = Depends(get_db)):
+    body = await request.json()
+    email = body.get("email")
+    password = body.get("password")
+    full_name = body.get("full_name")
+    phone = body.get("phone", "")
+    
+    if not email or not password or not full_name:
+        raise HTTPException(status_code=422, detail="Email, password, and full name required")
+    
+    existing_user = db.query(User).filter(User.email == email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = pwd_context.hash(password)
+    new_user = User(
+        email=email,
+        password_hash=hashed_password,
+        full_name=full_name,
+        phone=phone
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    access_token = create_access_token(data={"sub": new_user.email, "is_admin": False})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "full_name": new_user.full_name
+        }
+    }
+
 @router.post("/login")
 async def login(request: Request, db: Session = Depends(get_db)):
     body = await request.json()
@@ -44,13 +82,12 @@ async def login(request: Request, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
-    # Explicitly convert to Python bool then to int for JSON
     is_admin_value = bool(user.is_admin)
     
     access_token = create_access_token(data={"sub": user.email, "is_admin": is_admin_value})
     refresh_token = create_access_token(data={"sub": user.email, "type": "refresh"}, expires_delta=timedelta(days=7))
     
-    response_data = {
+    return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
@@ -61,6 +98,3 @@ async def login(request: Request, db: Session = Depends(get_db)):
             "full_name": user.full_name
         }
     }
-    
-    print("Login response:", response_data)
-    return response_data
