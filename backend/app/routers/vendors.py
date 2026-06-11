@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db, execute_query
 
-router = APIRouter()
+router = APIRouter(prefix="/api/vendors", tags=["vendors"])
 
 @router.get("/")
 def get_vendors(db: Session = Depends(get_db)):

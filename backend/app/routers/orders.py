@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db, execute_query
 
-router = APIRouter()
+router = APIRouter(prefix="/api/orders", tags=["orders"])
 
 @router.get("/")
 def get_orders(db: Session = Depends(get_db)):

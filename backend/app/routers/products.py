@@ -4,7 +4,7 @@ from typing import List, Optional
 from app.database import get_db
 from app import models, schemas
 
-router = APIRouter()
+router = APIRouter(prefix="/api/products", tags=["products"])
 
 @router.get("/", response_model=List[schemas.ProductResponse])
 def get_products(

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db, execute_query
 
-router = APIRouter()
+router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 @router.get("/stats")
 def get_stats(db: Session = Depends(get_db)):
