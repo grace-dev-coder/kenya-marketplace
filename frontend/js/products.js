@@ -1,14 +1,14 @@
 const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
 
 const DEMO_PRODUCTS = [
-    {id: 1, name: "Samsung Galaxy A54", description: "6.4 AMOLED, 128GB, 5000mAh", price: 45000, category: "Electronics", stock: 15, image_url: "https://images.unsplash.com/photo-1610945265078-3858a0828671?w=400&auto=format&fit=crop"},
-    {id: 2, name: "Nike Air Force 1", description: "Classic white sneakers, size 40-45", price: 8500, category: "Fashion", stock: 30, image_url: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&auto=format&fit=crop"},
-    {id: 3, name: "Solar Lamp with USB", description: "Solar powered lamp, M-Pesa enabled", price: 2500, category: "Home", stock: 50, image_url: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&auto=format&fit=crop"},
-    {id: 4, name: "Maize Flour (Ugali) 2kg", description: "Premium grade maize flour", price: 180, category: "Food", stock: 100, image_url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&auto=format&fit=crop"},
-    {id: 5, name: "Kenyan Coffee Beans 1kg", description: "Arabica coffee from Nyeri region", price: 1200, category: "Food", stock: 40, image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&auto=format&fit=crop"},
-    {id: 6, name: "Wireless Bluetooth Speaker", description: "Portable, 12hr battery", price: 3500, category: "Electronics", stock: 25, image_url: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&auto=format&fit=crop"},
-    {id: 7, name: "Kitenge Fabric Dress", description: "Traditional African print", price: 2800, category: "Fashion", stock: 20, image_url: "https://images.unsplash.com/photo-1595777457583-95ce0599ab70?w=400&auto=format&fit=crop"},
-    {id: 8, name: "Running Shoes - Kenyan Edition", description: "Lightweight running shoes", price: 6500, category: "Sports", stock: 35, image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop"},
+    {id: 1, name: "Samsung Galaxy A54", description: "6.4 AMOLED, 128GB, 5000mAh", price: 45000, category: "Electronics", stock: 15, image_url: "https://images.unsplash.com/photo-1610945265078-3858a0828671?w=400&auto=format&fit=crop", created_at: "2024-01-15"},
+    {id: 2, name: "Nike Air Force 1", description: "Classic white sneakers, size 40-45", price: 8500, category: "Fashion", stock: 30, image_url: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&auto=format&fit=crop", created_at: "2024-02-10"},
+    {id: 3, name: "Solar Lamp with USB", description: "Solar powered lamp, M-Pesa enabled", price: 2500, category: "Home", stock: 50, image_url: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&auto=format&fit=crop", created_at: "2024-01-20"},
+    {id: 4, name: "Maize Flour (Ugali) 2kg", description: "Premium grade maize flour", price: 180, category: "Food", stock: 100, image_url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&auto=format&fit=crop", created_at: "2024-03-01"},
+    {id: 5, name: "Kenyan Coffee Beans 1kg", description: "Arabica coffee from Nyeri region", price: 1200, category: "Food", stock: 40, image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&auto=format&fit=crop", created_at: "2024-02-28"},
+    {id: 6, name: "Wireless Bluetooth Speaker", description: "Portable, 12hr battery", price: 3500, category: "Electronics", stock: 25, image_url: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&auto=format&fit=crop", created_at: "2024-01-05"},
+    {id: 7, name: "Kitenge Fabric Dress", description: "Traditional African print", price: 2800, category: "Fashion", stock: 20, image_url: "https://images.unsplash.com/photo-1595777457583-95ce0599ab70?w=400&auto=format&fit=crop", created_at: "2024-03-10"},
+    {id: 8, name: "Running Shoes - Kenyan Edition", description: "Lightweight running shoes", price: 6500, category: "Sports", stock: 35, image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop", created_at: "2024-02-15"},
 ];
 
 class ProductManager {
@@ -46,13 +46,36 @@ class ProductManager {
 
         let filtered = [...DEMO_PRODUCTS];
 
+        // ─── FILTER BY CATEGORY ──────────────────────────────────────
         const cat = document.getElementById('category-filter')?.value || 'All Categories';
-        const minP = parseFloat(document.getElementById('min-price')?.value) || null;
-        const maxP = parseFloat(document.getElementById('max-price')?.value) || null;
+        if (cat !== 'All Categories') {
+            filtered = filtered.filter(p => p.category === cat);
+        }
 
-        if (cat !== 'All Categories') filtered = filtered.filter(p => p.category === cat);
-        if (minP !== null) filtered = filtered.filter(p => p.price >= minP);
-        if (maxP !== null) filtered = filtered.filter(p => p.price <= maxP);
+        // ─── FILTER BY PRICE ───────────────────────────────────────────
+        const minP = parseFloat(document.getElementById('min-price')?.value);
+        const maxP = parseFloat(document.getElementById('max-price')?.value);
+        if (!isNaN(minP) && minP > 0) {
+            filtered = filtered.filter(p => p.price >= minP);
+        }
+        if (!isNaN(maxP) && maxP > 0) {
+            filtered = filtered.filter(p => p.price <= maxP);
+        }
+
+        // ─── SORT ────────────────────────────────────────────────────
+        const sortBy = document.getElementById('sort-by')?.value || 'newest';
+        switch (sortBy) {
+            case 'price_low':
+                filtered.sort((a, b) => a.price - b.price);
+                break;
+            case 'price_high':
+                filtered.sort((a, b) => b.price - a.price);
+                break;
+            case 'newest':
+            default:
+                filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+        }
 
         this.products = filtered;
         this.renderProducts();
@@ -70,7 +93,25 @@ class ProductManager {
             if (response.ok) {
                 const apiProducts = await response.json();
                 if (apiProducts && apiProducts.length > 0) {
-                    this.products = apiProducts;
+                    // Apply same filters/sort to API results
+                    let filtered = [...apiProducts];
+                    
+                    const cat = document.getElementById('category-filter')?.value || 'All Categories';
+                    const minP = parseFloat(document.getElementById('min-price')?.value);
+                    const maxP = parseFloat(document.getElementById('max-price')?.value);
+                    const sortBy = document.getElementById('sort-by')?.value || 'newest';
+                    
+                    if (cat !== 'All Categories') filtered = filtered.filter(p => p.category === cat);
+                    if (!isNaN(minP) && minP > 0) filtered = filtered.filter(p => p.price >= minP);
+                    if (!isNaN(maxP) && maxP > 0) filtered = filtered.filter(p => p.price <= maxP);
+                    
+                    switch (sortBy) {
+                        case 'price_low': filtered.sort((a, b) => a.price - b.price); break;
+                        case 'price_high': filtered.sort((a, b) => b.price - a.price); break;
+                        case 'newest': default: filtered.sort((a, b) => (b.id || 0) - (a.id || 0)); break;
+                    }
+                    
+                    this.products = filtered;
                     this.renderProducts();
                 }
             }
@@ -121,10 +162,7 @@ function addToCart(productId) {
     const product = DEMO_PRODUCTS.find(p => p.id === productId);
     if (!product) return;
     
-    // Get existing cart
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // Check if already in cart
     const existingItem = cart.find(item => item.id === productId);
     if (existingItem) {
         existingItem.quantity += 1;
@@ -138,28 +176,20 @@ function addToCart(productId) {
         });
     }
     
-    // Save cart
     localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Update cart count on ALL pages
     updateCartCount();
-    
-    // Show feedback
-    alert(`✅ ${product.name} added to cart!`);
+    alert(`Added ${product.name} to cart!`);
 }
 
 // GLOBAL updateCartCount function
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    // Update all cart count elements on the page
     document.querySelectorAll('#cartCount, #cart-count').forEach(el => {
         el.textContent = totalItems;
     });
 }
 
-// Initialize cart count on page load
 document.addEventListener('DOMContentLoaded', updateCartCount);
 
 const productManager = new ProductManager();
