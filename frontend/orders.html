@@ -1,53 +1,216 @@
-[PASTE THE HTML ABOVE HERE]
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders - Kenya Marketplace</title>
-    <link rel="stylesheet" href="css/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        .loading { text-align: center; padding: 40px; color: #666; }
-        .error-box { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 4px; margin: 20px 0; }
-        .login-prompt { text-align: center; padding: 60px 20px; }
-        .empty-orders { text-align: center; padding: 60px 20px; }
-        .order-card { border: 1px solid #ddd; padding: 20px; margin: 15px 0; border-radius: 8px; }
-        .order-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .order-status { padding: 4px 12px; border-radius: 4px; background: #fff3cd; }
-        .btn { padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; }
-        .btn-primary { background: #ff9900; color: white; }
-        .btn-outline { border: 1px solid #ff9900; color: #ff9900; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; min-height: 100vh; }
+        
+        /* Navbar matching products page */
+        .main-header {
+            background: #232F3E;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .logo {
+            background: #FF9900;
+            color: #232F3E;
+            padding: 8px 15px;
+            font-weight: 900;
+            font-size: 12px;
+            border-radius: 3px;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        .nav-links a:hover { color: #FF9900; }
+        .user-menu { display: flex; align-items: center; gap: 15px; }
+        .user-menu span { font-weight: 600; }
+        .user-menu a {
+            color: #FF9900;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        /* Main content */
+        .orders-page {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .orders-page h1 {
+            color: #232F3E;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .loading i { font-size: 2rem; margin-bottom: 15px; display: block; }
+        
+        /* Empty state */
+        .empty-orders {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .empty-orders i { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
+        .empty-orders h2 { color: #232F3E; margin-bottom: 10px; }
+        .empty-orders p { color: #666; margin-bottom: 25px; }
+        
+        /* Login prompt */
+        .login-prompt {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .login-prompt i { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
+        .login-prompt h2 { color: #232F3E; margin-bottom: 10px; }
+        
+        /* Order cards */
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-header .order-id {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #232F3E;
+        }
+        .order-header .order-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        .order-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-paid { background: #d4edda; color: #155724; }
+        .status-shipped { background: #cce5ff; color: #004085; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .order-details { margin-bottom: 15px; }
+        .order-details p {
+            margin-bottom: 8px;
+            color: #444;
+            font-size: 0.95rem;
+        }
+        .order-details strong { color: #232F3E; }
+        
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #FF9900;
+            color: #232F3E;
+        }
+        .btn-primary:hover { background: #e68a00; }
+        .btn-outline {
+            border: 1px solid #FF9900;
+            color: #FF9900;
+            background: white;
+        }
+        .btn-outline:hover { background: #FFF8E7; }
+        
+        /* Error box */
+        .error-box {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .error-box h3 { margin-bottom: 10px; }
+        
+        /* Footer */
+        footer {
+            background: #232F3E;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <img src="../assets/logo.png" alt="Kenya Marketplace">
-            </a>
-            <div class="nav-links">
-                <a href="products.html" class="nav-link">Shop</a>
-                <div class="user-menu" id="userMenu" style="display:none;">
-                    <span id="userName"></span>
-                    <a href="#" onclick="logout()">Logout</a>
-                </div>
+    <header class="main-header">
+        <a href="index.html" class="logo">KENYA<br>MARKETPLACE</a>
+        <div class="nav-links">
+            <a href="products.html">Shop</a>
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <span id="userName"></span>
+                <a href="#" onclick="logout()">Logout</a>
             </div>
         </div>
-    </nav>
+    </header>
 
     <main class="orders-page">
-        <h1>My Orders</h1>
+        <h1><i class="fas fa-box-open"></i> My Orders</h1>
         <div id="ordersList">
             <div class="loading">
-                <i class="fas fa-spinner fa-spin"></i> Loading orders...
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading orders...</p>
             </div>
         </div>
     </main>
 
+    <footer>
+        <p>&copy; 2024 Kenya Marketplace. All rights reserved.</p>
+    </footer>
+
     <script>
-        // ─── AUTH FUNCTIONS ───────────────────────────────────────────
-        
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
         function getToken() {
@@ -83,15 +246,13 @@
             window.location.href = 'login.html';
         }
 
-        // ─── LOAD ORDERS ──────────────────────────────────────────────
-
         async function loadOrders() {
             const token = getToken();
             
             if (!token) {
                 document.getElementById('ordersList').innerHTML = `
                     <div class="login-prompt">
-                        <i class="fas fa-lock" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <i class="fas fa-lock"></i>
                         <h2>Please log in to view your orders</h2>
                         <a href="login.html" class="btn btn-primary" style="margin-top: 20px;">Go to Login</a>
                     </div>
@@ -108,8 +269,9 @@
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('token');
                     document.getElementById('ordersList').innerHTML = `
-                        <div class="error-box">
-                            <h3>Session Expired</h3>
+                        <div class="login-prompt">
+                            <i class="fas fa-lock"></i>
+                            <h2>Session Expired</h2>
                             <p>Please log in again.</p>
                             <a href="login.html" class="btn btn-primary">Login Again</a>
                         </div>
@@ -126,42 +288,49 @@
                 if (!orders || orders.length === 0) {
                     document.getElementById('ordersList').innerHTML = `
                         <div class="empty-orders">
-                            <i class="fas fa-box-open" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                            <i class="fas fa-box-open"></i>
                             <h2>No orders yet</h2>
-                            <a href="products.html" class="btn btn-primary" style="margin-top: 20px;">Start Shopping</a>
+                            <p>You haven't placed any orders yet.</p>
+                            <a href="products.html" class="btn btn-primary">Start Shopping</a>
                         </div>
                     `;
                 } else {
-                    document.getElementById('ordersList').innerHTML = orders.map(order => `
-                        <div class="order-card">
-                            <div class="order-header">
-                                <div>
-                                    <span style="font-weight: bold;">Order #${order.id}</span>
-                                    <span style="color: #666; margin-left: 10px;">${new Date(order.created_at).toLocaleDateString()}</span>
+                    document.getElementById('ordersList').innerHTML = orders.map(order => {
+                        const statusClass = `status-${order.status || 'pending'}`;
+                        return `
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div>
+                                        <span class="order-id">Order #${order.id}</span>
+                                        <span class="order-date">${order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}</span>
+                                    </div>
+                                    <span class="order-status ${statusClass}">${order.status ? order.status.toUpperCase() : 'PENDING'}</span>
                                 </div>
-                                <span class="order-status">${order.status ? order.status.toUpperCase() : 'PENDING'}</span>
+                                <div class="order-details">
+                                    <p><strong>Total:</strong> KES ${order.total_amount ? order.total_amount.toLocaleString() : '0'}</p>
+                                    <p><strong>Shipping to:</strong> ${order.shipping_address || 'Not specified'}</p>
+                                    <p><strong>Phone:</strong> ${order.shipping_phone || 'Not specified'}</p>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-outline" onclick="alert('Order #' + ${order.id})">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
                             </div>
-                            <div style="margin-bottom: 15px;">
-                                <p><strong>Total:</strong> KES ${order.total_amount ? order.total_amount.toLocaleString() : '0'}</p>
-                                <p><strong>Shipping:</strong> ${order.shipping_address || 'Not specified'}</p>
-                            </div>
-                            <button class="btn btn-outline" onclick="alert('Order #' + ${order.id})">View Details</button>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('ordersList').innerHTML = `
                     <div class="error-box">
-                        <h3>Failed to load orders</h3>
+                        <h3><i class="fas fa-exclamation-triangle"></i> Failed to load orders</h3>
                         <p>${error.message}</p>
-                        <button onclick="location.reload()" class="btn btn-primary">Try Again</button>
+                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 15px;">Try Again</button>
                     </div>
                 `;
             }
         }
-
-        // ─── RUN ───────────────────────────────────────────────────────
 
         document.addEventListener('DOMContentLoaded', () => {
             updateAuthUI();
