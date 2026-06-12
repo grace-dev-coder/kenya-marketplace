@@ -28,11 +28,19 @@ class ProductManager {
         document.getElementById('max-price')?.addEventListener('input', () => this.loadProducts());
         document.getElementById('sort-by')?.addEventListener('change', () => this.loadProducts());
         document.getElementById('apply-filters')?.addEventListener('click', () => this.loadProducts());
+        
+        // ─── SEARCH ────────────────────────────────────────────────────
+        document.getElementById('search-btn')?.addEventListener('click', () => this.loadProducts());
+        document.getElementById('search-input')?.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') this.loadProducts();
+        });
+        
         document.getElementById('clear-filters')?.addEventListener('click', () => {
             document.getElementById('category-filter').value = 'All Categories';
             document.getElementById('min-price').value = '';
             document.getElementById('max-price').value = '';
             document.getElementById('sort-by').value = 'newest';
+            document.getElementById('search-input').value = '';
             this.loadProducts();
         });
     }
@@ -52,7 +60,7 @@ class ProductManager {
             filtered = filtered.filter(p => p.category === cat);
         }
 
-        // ─── FILTER BY PRICE ───────────────────────────────────────────
+        // ─── FILTER BY PRICE ─────────────────────────────────────────
         const minP = parseFloat(document.getElementById('min-price')?.value);
         const maxP = parseFloat(document.getElementById('max-price')?.value);
         if (!isNaN(minP) && minP > 0) {
@@ -60,6 +68,15 @@ class ProductManager {
         }
         if (!isNaN(maxP) && maxP > 0) {
             filtered = filtered.filter(p => p.price <= maxP);
+        }
+
+        // ─── FILTER BY SEARCH ────────────────────────────────────────
+        const searchTerm = document.getElementById('search-input')?.value?.trim().toLowerCase();
+        if (searchTerm) {
+            filtered = filtered.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) || 
+                p.description.toLowerCase().includes(searchTerm)
+            );
         }
 
         // ─── SORT ────────────────────────────────────────────────────
@@ -93,17 +110,23 @@ class ProductManager {
             if (response.ok) {
                 const apiProducts = await response.json();
                 if (apiProducts && apiProducts.length > 0) {
-                    // Apply same filters/sort to API results
                     let filtered = [...apiProducts];
                     
                     const cat = document.getElementById('category-filter')?.value || 'All Categories';
                     const minP = parseFloat(document.getElementById('min-price')?.value);
                     const maxP = parseFloat(document.getElementById('max-price')?.value);
+                    const searchTerm = document.getElementById('search-input')?.value?.trim().toLowerCase();
                     const sortBy = document.getElementById('sort-by')?.value || 'newest';
                     
                     if (cat !== 'All Categories') filtered = filtered.filter(p => p.category === cat);
                     if (!isNaN(minP) && minP > 0) filtered = filtered.filter(p => p.price >= minP);
                     if (!isNaN(maxP) && maxP > 0) filtered = filtered.filter(p => p.price <= maxP);
+                    if (searchTerm) {
+                        filtered = filtered.filter(p => 
+                            p.name.toLowerCase().includes(searchTerm) || 
+                            (p.description && p.description.toLowerCase().includes(searchTerm))
+                        );
+                    }
                     
                     switch (sortBy) {
                         case 'price_low': filtered.sort((a, b) => a.price - b.price); break;
@@ -157,7 +180,6 @@ class ProductManager {
     }
 }
 
-// GLOBAL addToCart function
 function addToCart(productId) {
     const product = DEMO_PRODUCTS.find(p => p.id === productId);
     if (!product) return;
@@ -181,7 +203,6 @@ function addToCart(productId) {
     alert(`Added ${product.name} to cart!`);
 }
 
-// GLOBAL updateCartCount function
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);

@@ -27,9 +27,7 @@
     </nav>
 
     <main class="product-detail-page">
-        <div class="product-detail-container" id="productDetail">
-            <!-- Populated by JS -->
-        </div>
+        <div class="product-detail-container" id="productDetail"></div>
 
         <section class="reviews-section">
             <h2>Customer Reviews</h2>
@@ -55,8 +53,6 @@
     </main>
 
     <script>
-        // ─── INLINE AUTH FUNCTIONS ─────────────────────────────────────
-        
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
         function getToken() {
@@ -95,8 +91,6 @@
             window.location.href = 'login.html';
         }
 
-        // ─── CART COUNT ────────────────────────────────────────────────
-
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -104,8 +98,6 @@
                 el.textContent = totalItems;
             });
         }
-
-        // ─── PRODUCT DETAIL ────────────────────────────────────────────
 
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
@@ -217,8 +209,6 @@
 
         function addToCart(productId) {
             const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-            // Get product info from the page or fetch it
-            // For now, add a minimal item
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const existingItem = cart.find(item => item.id === productId);
             if (existingItem) {

@@ -18,15 +18,11 @@ def on_startup():
     try:
         from app.database import init_db
         init_db()
-        print("✅ Database initialized successfully", file=sys.stderr)
+        print("Database initialized successfully", file=sys.stderr)
     except Exception as e:
-        print(f"❌ Database init failed: {e}", file=sys.stderr)
+        print(f"Database init failed: {e}", file=sys.stderr)
         traceback.print_exc()
-        # Don't re-raise — let the app start so you can see /health
-        # Remove the pass and uncomment raise after debugging
-        # raise e
 
-# Import routers AFTER startup event is defined
 from app.routers import auth, products, orders, payments, vendors, admin, reviews
 
 app.include_router(auth.router)

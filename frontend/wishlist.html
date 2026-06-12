@@ -25,14 +25,10 @@
 
     <main class="wishlist-page">
         <h1>My Wishlist</h1>
-        <div class="products-grid" id="wishlistGrid">
-            <!-- Populated by JS -->
-        </div>
+        <div class="products-grid" id="wishlistGrid"></div>
     </main>
 
     <script>
-        // ─── INLINE AUTH FUNCTIONS ─────────────────────────────────────
-        
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
         function getToken() {
@@ -68,20 +64,12 @@
             window.location.href = 'login.html';
         }
 
-        // ─── WISHLIST ──────────────────────────────────────────────────
-
         async function loadWishlist() {
             const token = getToken();
             if (!token) {
                 window.location.href = 'login.html';
                 return;
             }
-
-            // TODO: Replace with actual API call when wishlist endpoint is ready
-            // const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
-            //     headers: {'Authorization': `Bearer ${token}`}
-            // });
-            // const items = await response.json();
 
             document.getElementById('wishlistGrid').innerHTML = `
                 <div class="empty-wishlist" style="text-align:center; padding:60px 20px;">

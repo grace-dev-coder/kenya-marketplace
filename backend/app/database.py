@@ -31,7 +31,6 @@ def init_db():
     from app import models
     Base.metadata.create_all(bind=engine)
 
-# ─── Helper for raw SQL queries (used by some routers) ─────────────────
 def execute_query(query: str, params: dict = None, fetch: bool = False):
     with engine.connect() as connection:
         result = connection.execute(text(query), params or {})
