@@ -5,12 +5,22 @@ import sys
 
 app = FastAPI(title="Kenya Marketplace API")
 
+origins = [
+    "https://kenya-marketplace-frontend.onrender.com",
+    "https://kenya-marketplace-admin.onrender.com",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:5500",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 @app.on_event("startup")

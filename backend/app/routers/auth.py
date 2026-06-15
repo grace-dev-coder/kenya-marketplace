@@ -98,3 +98,32 @@ async def login(request: Request, db: Session = Depends(get_db)):
             "full_name": user.full_name
         }
     }
+
+# ─── TEMPORARY: Create Admin User ─────────────────────────────────
+# ⚠️ REMOVE THIS ENDPOINT AFTER CREATING YOUR ADMIN ACCOUNT!
+# Use: curl -X POST .../api/auth/create-admin -d '{"email":"...","password":"..."}'
+@router.post("/create-admin")
+async def create_admin(request: Request, db: Session = Depends(get_db)):
+    body = await request.json()
+    email = body.get("email")
+    password = body.get("password")
+    full_name = body.get("full_name", "Admin")
+    
+    if not email or not password:
+        raise HTTPException(status_code=422, detail="Email and password required")
+    
+    existing = db.query(User).filter(User.email == email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
+    hashed_password = pwd_context.hash(password)
+    admin = User(
+        email=email,
+        password_hash=hashed_password,
+        full_name=full_name,
+        is_admin=True,
+        is_vendor=False
+    )
+    db.add(admin)
+    db.commit()
+    return {"message": "Admin created successfully", "email": email}
