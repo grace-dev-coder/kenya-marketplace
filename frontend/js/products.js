@@ -11,8 +11,12 @@ async function loadProducts() {
         const response = await fetch(API_BASE_URL + '/api/products/?limit=100');
         const products = await response.json();
         
-        window.loadedProducts = products;
-        window.filteredProducts = products;
+        // Normalize category to string for consistent comparison
+        window.loadedProducts = products.map(p => ({
+            ...p,
+            category: String(p.category || '').trim()
+        }));
+        window.filteredProducts = window.loadedProducts;
         
         const container = document.getElementById('products-container');
         const loading = document.getElementById('loading');
@@ -20,12 +24,12 @@ async function loadProducts() {
         if (loading) loading.style.display = 'none';
         if (!container) return;
         
-        if (!products || products.length === 0) {
+        if (!window.loadedProducts || window.loadedProducts.length === 0) {
             container.innerHTML = '<p class="no-products">No products available</p>';
             return;
         }
         
-        renderProducts(products);
+        renderProducts(window.loadedProducts);
         
     } catch (error) {
         console.error('Error loading products:', error);
@@ -47,7 +51,7 @@ function renderProducts(products) {
             <div class="product-info">
                 <h3>${product.name}</h3>
                 <p class="price">KES ${(product.price || 0).toLocaleString()}</p>
-                <p class="category">${product.category || 'Uncategorized'}</p>
+                <p class="category">${getCategoryName(product.category)}</p>
                 <div class="product-actions">
                     <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Details</a>
                     <button onclick="addProductToCart(${product.id})" class="btn btn-primary">
@@ -59,6 +63,18 @@ function renderProducts(products) {
     `).join('');
 }
 
+// Map category IDs to names for display
+function getCategoryName(categoryId) {
+    const categories = {
+        '1': 'Electronics',
+        '2': 'Fashion',
+        '3': 'Home & Garden',
+        '4': 'Food & Groceries',
+        '5': 'Sports'
+    };
+    return categories[String(categoryId)] || (categoryId || 'Uncategorized');
+}
+
 function filterProducts() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
     const category = document.getElementById('category-filter').value;
@@ -66,22 +82,31 @@ function filterProducts() {
     const maxPrice = parseFloat(document.getElementById('max-price').value) || Infinity;
     const sortBy = document.getElementById('sort-by').value;
     
+    console.log('=== FILTER DEBUG ===');
+    console.log('Selected category:', category, 'type:', typeof category);
+    console.log('Total products:', window.loadedProducts.length);
+    
+    if (window.loadedProducts.length > 0) {
+        console.log('First product:', window.loadedProducts[0].name, 'category:', window.loadedProducts[0].category, 'type:', typeof window.loadedProducts[0].category);
+    }
+    
     let filtered = window.loadedProducts.filter(product => {
         const matchesSearch = !searchTerm || 
             (product.name && product.name.toLowerCase().includes(searchTerm)) ||
             (product.description && product.description.toLowerCase().includes(searchTerm));
         
-        // Compare as strings to handle both number and string categories
-        const productCategory = String(product.category || '').trim();
-        const selectedCategory = String(category).trim();
-        const matchesCategory = selectedCategory === 'All Categories' || 
-            productCategory === selectedCategory;
+        // Both are now strings due to normalization in loadProducts
+        const matchesCategory = category === 'All Categories' || 
+            product.category === category;
         
         const price = parseFloat(product.price) || 0;
         const matchesPrice = price >= minPrice && price <= maxPrice;
         
         return matchesSearch && matchesCategory && matchesPrice;
     });
+    
+    console.log('Filtered count:', filtered.length);
+    console.log('Filtered products:', filtered.map(p => ({name: p.name, category: p.category})));
     
     // Sort
     if (sortBy === 'price_low') {
