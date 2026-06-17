@@ -1,46 +1,64 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app import models, schemas
+from app.models import Product
+from app.schemas import ProductCreate, ProductResponse
+from app.dependencies import get_current_admin
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
-@router.get("/", response_model=List[schemas.ProductResponse])
+@router.get("/")
 def get_products(
-    db: Session = Depends(get_db),
-    category: Optional[str] = Query(None),
-    min_price: Optional[float] = Query(None),
-    max_price: Optional[float] = Query(None),
-    sort_by: Optional[str] = Query("newest"),
+    category: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: str = "newest",
     skip: int = 0,
-    limit: int = 20
+    limit: int = 20,
+    db: Session = Depends(get_db)
 ):
-    query = db.query(models.Product)
+    query = db.query(Product)
     
-    if category and category != "All Categories":
-        query = query.filter(models.Product.category == category)
-    
-    if min_price is not None:
-        query = query.filter(models.Product.price >= min_price)
-    
-    if max_price is not None:
-        query = query.filter(models.Product.price <= max_price)
-    
-    # Sorting
-    if sort_by == "newest":
-        query = query.order_by(models.Product.created_at.desc())
-    elif sort_by == "price_low":
-        query = query.order_by(models.Product.price.asc())
-    elif sort_by == "price_high":
-        query = query.order_by(models.Product.price.desc())
+    if category:
+        query = query.filter(Product.category == category)
+    if min_price:
+        query = query.filter(Product.price >= min_price)
+    if max_price:
+        query = query.filter(Product.price <= max_price)
     
     products = query.offset(skip).limit(limit).all()
     return products
 
-@router.get("/{product_id}", response_model=schemas.ProductResponse)
+@router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+@router.post("/")
+def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    db_product = Product(**product.dict())
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+@router.delete("/{product_id}")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    db.delete(product)
+    db.commit()
+    return {"message": "Product deleted successfully"}
