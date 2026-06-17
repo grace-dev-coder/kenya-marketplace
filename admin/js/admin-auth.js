@@ -9,10 +9,13 @@ function checkAuthStatus() {
     const isAdmin = localStorage.getItem('is_admin');
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Don't check auth on login page itself
-    if (currentPage === 'login.html' || currentPage === '' || currentPage === 'index.html') return;
+    // Don't check auth on login page or index page
+    if (currentPage === 'login.html' || currentPage === '' || currentPage === 'index.html') {
+        return;
+    }
     
-    if (!token || !isAdmin || isAdmin !== '1') {
+    // Redirect to login if not authenticated
+    if (!token || isAdmin !== '1') {
         window.location.href = 'login.html';
     }
 }
@@ -22,4 +25,5 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+// Run check when DOM is ready
 document.addEventListener('DOMContentLoaded', checkAuthStatus);

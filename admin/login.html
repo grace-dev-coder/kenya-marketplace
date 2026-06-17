@@ -17,13 +17,11 @@
         .btn:hover { background: #e68a00; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .error { color: #e74c3c; background: #fdeaea; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; }
-        .debug { background: #e8f4f8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 11px; font-family: monospace; word-break: break-all; max-height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <div class="login-box">
         <h1>Admin Login</h1>
-        <div class="debug" id="debugBox"></div>
         <div class="error" id="errorMsg"></div>
         <form id="adminLoginForm">
             <div class="form-group">
@@ -40,11 +38,9 @@
 
     <script>
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
-        const debugBox = document.getElementById('debugBox');
 
-        function log(msg) {
-            debugBox.innerHTML += msg + '<br>';
-        }
+        // Wake up backend (Render free tier sleeps)
+        fetch(`${API_BASE_URL}/health`).catch(() => {});
 
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -55,58 +51,41 @@
             btn.disabled = true;
             btn.textContent = 'Logging in...';
             errorMsg.style.display = 'none';
-            debugBox.innerHTML = '';
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            log('=== LOGIN DEBUG ===');
-            log('Email: ' + email);
-            
             try {
-                log('Fetching from: ' + API_BASE_URL + '/api/auth/login');
-                
-                const response = await fetch(API_BASE_URL + '/api/auth/login', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: email, password: password})
+                    body: JSON.stringify({email, password})
                 });
                 
-                log('Response status: ' + response.status);
-                log('Response OK: ' + response.ok);
-                
-                const rawText = await response.text();
-                log('Raw response: ' + rawText);
-                
-                const data = JSON.parse(rawText);
-                
-                log('data.is_admin = ' + data.is_admin);
-                log('typeof = ' + typeof data.is_admin);
+                const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Login failed with status ' + response.status);
+                    throw new Error(data.detail || 'Login failed');
                 }
                 
-                // SIMPLIFIED CHECK
+                // Check admin
                 if (data.is_admin !== true) {
-                    log('FAILED: data.is_admin is not true');
                     throw new Error('Access denied. Admin only.');
                 }
                 
-                log('PASSED: is_admin is true');
-                
-                // Save
-                localStorage.setItem('admin_token', data.access_token);
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('token', data.access_token);
+                // Save token
+                const token = data.access_token;
+                localStorage.setItem('admin_token', token);
+                localStorage.setItem('access_token', token);
+                localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(data.user || {}));
                 localStorage.setItem('is_admin', '1');
                 
-                log('Saved to localStorage. Redirecting...');
+                // Redirect to dashboard
                 window.location.href = 'dashboard.html';
                 
             } catch (error) {
-                log('ERROR: ' + error.message);
+                console.error('Login error:', error);
                 errorMsg.textContent = error.message || 'Login failed. Please try again.';
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
