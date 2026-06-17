@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// Check if API_BASE_URL already exists
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
@@ -17,20 +20,20 @@ async function loadUsers() {
         window.location.href = 'login.html';
         return;
     }
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/admin/users?limit=100`, {
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
+
         if (response.status === 401) {
             logout();
             return;
         }
-        
+
         allUsers = await response.json();
         renderUsers(allUsers);
-        
+
     } catch (error) {
         console.error('Error loading users:', error);
     }
@@ -39,12 +42,12 @@ async function loadUsers() {
 function renderUsers(users) {
     const tableBody = document.getElementById('usersTable');
     if (!tableBody) return;
-    
+
     if (!users || users.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No users found</td></tr>';
         return;
     }
-    
+
     tableBody.innerHTML = users.map(user => `
         <tr>
             <td>${user.id}</td>
@@ -71,7 +74,7 @@ function renderUsers(users) {
 function filterUsers() {
     const searchInput = document.getElementById('userSearch');
     if (!searchInput) return;
-    
+
     const query = searchInput.value.toLowerCase();
     const filtered = allUsers.filter(user => 
         (user.full_name || user.name || '').toLowerCase().includes(query) ||
@@ -84,12 +87,11 @@ function filterUsers() {
 async function toggleUser(userId) {
     const token = getAdminToken();
     try {
-        // NOTE: Backend needs PUT /api/admin/users/{user_id}/toggle endpoint
         const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/toggle`, {
             method: 'PUT',
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
+
         if (response.ok) {
             loadUsers();
         } else {

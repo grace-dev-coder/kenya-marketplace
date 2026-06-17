@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// Check if API_BASE_URL already exists
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
@@ -10,26 +13,26 @@ async function loadAdminProducts() {
         window.location.href = 'login.html';
         return;
     }
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/?limit=100`, {
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
+
         if (response.status === 401) {
             logout();
             return;
         }
-        
+
         const products = await response.json();
         const tableBody = document.getElementById('productsTable');
         if (!tableBody) return;
-        
+
         if (!products || products.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No products found</td></tr>';
             return;
         }
-        
+
         tableBody.innerHTML = products.map(product => `
             <tr>
                 <td>${product.id}</td>
@@ -45,7 +48,7 @@ async function loadAdminProducts() {
                 </td>
             </tr>
         `).join('');
-        
+
     } catch (error) {
         console.error('Error loading products:', error);
     }
@@ -64,7 +67,7 @@ function closeModal() {
 async function handleAddProduct(e) {
     e.preventDefault();
     const token = getAdminToken();
-    
+
     const data = {
         name: document.getElementById('prodName').value,
         description: document.getElementById('prodDesc').value,
@@ -72,7 +75,7 @@ async function handleAddProduct(e) {
         stock: parseInt(document.getElementById('prodStock').value),
         category: document.getElementById('prodCategory').value
     };
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/`, {
             method: 'POST',
@@ -82,7 +85,7 @@ async function handleAddProduct(e) {
             },
             body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
             closeModal();
             loadAdminProducts();
@@ -99,14 +102,14 @@ async function handleAddProduct(e) {
 
 async function deleteProduct(productId) {
     if (!confirm('Are you sure you want to delete this product?')) return;
-    
+
     const token = getAdminToken();
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
             method: 'DELETE',
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
+
         if (response.ok) {
             loadAdminProducts();
         } else {
@@ -120,6 +123,29 @@ async function deleteProduct(productId) {
 
 function editProduct(productId) {
     alert('Edit functionality for product #' + productId + ' - implement as needed');
+}
+
+async function importProducts(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const token = getAdminToken();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/bulk-import/products`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+            body: formData
+        });
+
+        const result = await response.json();
+        alert(result.message);
+        loadAdminProducts();
+    } catch (error) {
+        alert('Import failed');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// Check if API_BASE_URL already exists (declared in another script)
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
@@ -8,14 +11,11 @@ function checkAuthStatus() {
     const token = getAdminToken();
     const isAdmin = localStorage.getItem('is_admin');
     const currentPage = window.location.pathname.split('/').pop();
-    
-    // Don't check auth on login page or index page
-    if (currentPage === 'login.html' || currentPage === '' || currentPage === 'index.html') {
-        return;
-    }
-    
-    // Redirect to login if not authenticated
-    if (!token || isAdmin !== '1') {
+
+    // Don't check auth on login page itself
+    if (currentPage === 'login.html' || currentPage === '' || currentPage === 'index.html') return;
+
+    if (!token || !isAdmin || isAdmin !== '1') {
         window.location.href = 'login.html';
     }
 }
@@ -25,5 +25,4 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-// Run check when DOM is ready
 document.addEventListener('DOMContentLoaded', checkAuthStatus);

@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// Check if API_BASE_URL already exists
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
@@ -21,32 +24,32 @@ async function loadOrders() {
         window.location.href = 'login.html';
         return;
     }
-    
+
     const statusFilter = document.getElementById('statusFilter');
     const status = statusFilter?.value || '';
-    
+
     let url = `${API_BASE_URL}/api/orders/?limit=100`;
     if (status) url += `&status=${status}`;
-    
+
     try {
         const response = await fetch(url, {
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
+
         if (response.status === 401) {
             logout();
             return;
         }
-        
+
         const orders = await response.json();
         const tableBody = document.getElementById('ordersTable');
         if (!tableBody) return;
-        
+
         if (!orders || orders.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No orders found</td></tr>';
             return;
         }
-        
+
         tableBody.innerHTML = orders.map(order => `
             <tr>
                 <td>#${order.id}</td>
@@ -68,7 +71,7 @@ async function loadOrders() {
                 </td>
             </tr>
         `).join('');
-        
+
     } catch (error) {
         console.error('Error loading orders:', error);
     }
@@ -77,7 +80,6 @@ async function loadOrders() {
 async function updateOrderStatus(orderId, status) {
     const token = getAdminToken();
     try {
-        // NOTE: Backend needs PUT /api/orders/{order_id} endpoint
         const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
             method: 'PUT',
             headers: {
@@ -86,7 +88,7 @@ async function updateOrderStatus(orderId, status) {
             },
             body: JSON.stringify({ status })
         });
-        
+
         if (response.ok) {
             alert('Order status updated');
         } else {
