@@ -1,99 +1,103 @@
-// Cart-specific functions
+// Check if API_BASE_URL already exists
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
+}
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'https://kenya-marketplace-api.onrender.com' 
-    : 'https://kenya-marketplace-api.onrender.com';
+function getToken() {
+    return localStorage.getItem('token') || localStorage.getItem('access_token');
+}
 
-async function loadCart() {
-    const token = getToken();
-    if (!token) {
-        window.location.href = 'login.html';
+// Get cart from localStorage
+function getCart() {
+    const cart = localStorage.getItem('cart');
+    return cart ? JSON.parse(cart) : [];
+}
+
+// Save cart to localStorage
+function saveCart(cart) {
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+// Add product to cart (called from products.js)
+function addToCart(product) {
+    const cart = getCart();
+    const existingItem = cart.find(item => item.product_id === product.id);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            product_id: product.id,
+            product_name: product.name,
+            price: product.price,
+            image_url: product.image_url,
+            quantity: 1
+        });
+    }
+    
+    saveCart(cart);
+    updateCartCount();
+    alert(`${product.name} added to cart!`);
+}
+
+// Remove from cart
+function removeFromCart(productId) {
+    let cart = getCart();
+    cart = cart.filter(item => item.product_id !== productId);
+    saveCart(cart);
+    loadCart();
+    updateCartCount();
+}
+
+// Update quantity
+function updateQuantity(productId, quantity) {
+    if (quantity < 1) {
+        removeFromCart(productId);
         return;
     }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-        const data = await response.json();
-        renderCart(data);
-    } catch (error) {
-        console.error('Error loading cart:', error);
+    
+    const cart = getCart();
+    const item = cart.find(item => item.product_id === productId);
+    if (item) {
+        item.quantity = quantity;
+        saveCart(cart);
+        loadCart();
+        updateCartCount();
     }
 }
 
-function renderCart(cartData) {
+// Load and render cart
+function loadCart() {
+    const cart = getCart();
     const container = document.getElementById('cartItems');
     if (!container) return;
 
-    if (!cartData.items || cartData.items.length === 0) {
+    if (cart.length === 0) {
         container.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
         updateCartTotal(0);
         return;
     }
 
-    container.innerHTML = cartData.items.map(item => `
+    container.innerHTML = cart.map(item => `
         <div class="cart-item" data-id="${item.product_id}">
             <img src="${item.image_url || 'https://via.placeholder.com/100'}" alt="${item.product_name}">
             <div class="item-details">
                 <h3>${item.product_name}</h3>
-                <p class="price">KES ${item.price.toLocaleString()} each</p>
+                <p class="price">KES ${(item.price || 0).toLocaleString()} each</p>
             </div>
             <div class="item-quantity">
                 <button onclick="updateQuantity(${item.product_id}, ${item.quantity - 1})">-</button>
                 <span>${item.quantity}</span>
                 <button onclick="updateQuantity(${item.product_id}, ${item.quantity + 1})">+</button>
             </div>
-            <p class="item-total">KES ${(item.price * item.quantity).toLocaleString()}</p>
+            <p class="item-total">KES ${((item.price || 0) * item.quantity).toLocaleString()}</p>
             <button onclick="removeFromCart(${item.product_id})" class="btn-remove"><i class="fas fa-trash"></i></button>
         </div>
     `).join('');
 
-    const total = cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = cart.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
     updateCartTotal(total);
-}
-
-async function updateQuantity(productId, quantity) {
-    if (quantity < 1) {
-        removeFromCart(productId);
-        return;
-    }
-
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/cart`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({product_id: productId, quantity: quantity})
-        });
-
-        if (response.ok) {
-            loadCart();
-            updateCartCount();
-        }
-    } catch (error) {
-        console.error('Error updating quantity:', error);
-    }
-}
-
-async function removeFromCart(productId) {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/cart/${productId}`, {
-            method: 'DELETE',
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-
-        if (response.ok) {
-            loadCart();
-            updateCartCount();
-        }
-    } catch (error) {
-        console.error('Error removing item:', error);
-    }
 }
 
 function updateCartTotal(total) {
@@ -101,9 +105,18 @@ function updateCartTotal(total) {
     if (totalEl) totalEl.textContent = `KES ${total.toLocaleString()}`;
 }
 
+// Update cart count badge
+function updateCartCount() {
+    const cart = getCart();
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const badge = document.getElementById('cartCount');
+    if (badge) badge.textContent = count;
+}
+
 // Initialize cart page
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('cartItems')) {
         loadCart();
     }
+    updateCartCount();
 });
