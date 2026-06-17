@@ -17,49 +17,33 @@
         .btn:hover { background: #e68a00; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .error { color: #e74c3c; background: #fdeaea; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; }
-        .debug-info { background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="login-box">
         <h1>Admin Login</h1>
-        <div class="debug-info" id="debugInfo"></div>
         <div class="error" id="errorMsg"></div>
-        <form id="adminLoginForm" onsubmit="return false;">
+        <form id="adminLoginForm">
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="email" placeholder="admin@example.com" required autocomplete="off">
+                <input type="email" id="email" placeholder="admin@example.com" required>
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="password" placeholder="Enter password" required autocomplete="off">
+                <input type="password" id="password" placeholder="Enter password" required>
             </div>
-            <button type="button" class="btn" id="loginBtn">Login</button>
+            <button type="submit" class="btn" id="loginBtn">Login</button>
         </form>
     </div>
 
     <script>
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
-        // Debug info
-        const debugBox = document.getElementById('debugInfo');
-        const token = localStorage.getItem('admin_token');
-        const isAdmin = localStorage.getItem('is_admin');
-        
-        debugBox.innerHTML = `
-            <strong>Debug:</strong><br>
-            admin_token: ${token ? 'EXISTS' : 'NULL'}<<br>
-            is_admin: ${isAdmin}<br>
-            URL: ${window.location.href}
-        `;
-
-        // Wake up backend
+        // Wake up backend (Render free tier sleeps)
         fetch(`${API_BASE_URL}/health`).catch(() => {});
 
-        // Manual click handler instead of form submit
-        document.getElementById('loginBtn').addEventListener('click', async function(e) {
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            e.stopPropagation();
             
             const btn = document.getElementById('loginBtn');
             const errorMsg = document.getElementById('errorMsg');
@@ -71,8 +55,6 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            debugBox.innerHTML += '<br><strong>Clicked login button</strong>';
-            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
@@ -81,28 +63,29 @@
                 });
                 
                 const data = await response.json();
-                debugBox.innerHTML += '<br>Response: ' + response.status;
                 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Login failed');
                 }
                 
+                // Check admin
                 if (data.is_admin !== true) {
                     throw new Error('Access denied. Admin only.');
                 }
                 
                 // Save token
-                localStorage.setItem('admin_token', data.access_token);
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('token', data.access_token);
+                const token = data.access_token;
+                localStorage.setItem('admin_token', token);
+                localStorage.setItem('access_token', token);
+                localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(data.user || {}));
                 localStorage.setItem('is_admin', '1');
                 
-                debugBox.innerHTML += '<br>Token saved. Redirecting...';
+                // Redirect to dashboard
                 window.location.href = 'dashboard.html';
                 
             } catch (error) {
-                debugBox.innerHTML += '<br>Error: ' + error.message;
+                console.error('Login error:', error);
                 errorMsg.textContent = error.message || 'Login failed. Please try again.';
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
