@@ -17,7 +17,7 @@
         .btn:hover { background: #e68a00; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .error { color: #e74c3c; background: #fdeaea; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; }
-        .debug { background: #e8f4f8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 12px; font-family: monospace; display: none; }
+        .debug { background: #e8f4f8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 11px; font-family: monospace; word-break: break-all; max-height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -39,20 +39,11 @@
     </div>
 
     <script>
-        // Global error handler
-        window.onerror = function(msg, url, line) {
-            const debugBox = document.getElementById('debugBox');
-            debugBox.style.display = 'block';
-            debugBox.innerHTML += 'JS ERROR: ' + msg + ' at line ' + line + '<br>';
-        };
-
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
-        fetch(`${API_BASE_URL}/health`).catch(() => {});
+        const debugBox = document.getElementById('debugBox');
 
-        function showDebug(msg) {
-            const box = document.getElementById('debugBox');
-            box.style.display = 'block';
-            box.innerHTML += msg + '<br>';
+        function log(msg) {
+            debugBox.innerHTML += msg + '<br>';
         }
 
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
@@ -64,55 +55,58 @@
             btn.disabled = true;
             btn.textContent = 'Logging in...';
             errorMsg.style.display = 'none';
+            debugBox.innerHTML = '';
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            showDebug('Starting login...');
+            log('=== LOGIN DEBUG ===');
+            log('Email: ' + email);
             
             try {
-                showDebug('Fetching...');
-                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                log('Fetching from: ' + API_BASE_URL + '/api/auth/login');
+                
+                const response = await fetch(API_BASE_URL + '/api/auth/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, password})
+                    body: JSON.stringify({email: email, password: password})
                 });
                 
-                showDebug('Response status: ' + response.status);
+                log('Response status: ' + response.status);
+                log('Response OK: ' + response.ok);
                 
                 const rawText = await response.text();
-                showDebug('Raw text length: ' + rawText.length);
+                log('Raw response: ' + rawText);
                 
                 const data = JSON.parse(rawText);
-                showDebug('data.is_admin = ' + data.is_admin);
-                showDebug('typeof = ' + typeof data.is_admin);
-                showDebug('=== true = ' + (data.is_admin === true));
+                
+                log('data.is_admin = ' + data.is_admin);
+                log('typeof = ' + typeof data.is_admin);
                 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Login failed');
+                    throw new Error(data.detail || 'Login failed with status ' + response.status);
                 }
                 
-                const isAdmin = data.is_admin === true;
-                showDebug('isAdmin result: ' + isAdmin);
-                
-                if (!isAdmin) {
-                    showDebug('CHECK FAILED - throwing error');
+                // SIMPLIFIED CHECK
+                if (data.is_admin !== true) {
+                    log('FAILED: data.is_admin is not true');
                     throw new Error('Access denied. Admin only.');
                 }
                 
-                showDebug('CHECK PASSED - saving token');
+                log('PASSED: is_admin is true');
                 
+                // Save
                 localStorage.setItem('admin_token', data.access_token);
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('user', JSON.stringify(data.user || {}));
                 localStorage.setItem('is_admin', '1');
                 
-                showDebug('Redirecting...');
+                log('Saved to localStorage. Redirecting...');
                 window.location.href = 'dashboard.html';
                 
             } catch (error) {
-                showDebug('CATCH ERROR: ' + error.message);
+                log('ERROR: ' + error.message);
                 errorMsg.textContent = error.message || 'Login failed. Please try again.';
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
