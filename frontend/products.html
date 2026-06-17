@@ -123,7 +123,6 @@
         #loading { text-align: center; padding: 40px; color: #666; }
         #products-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         
-        /* Product card styles */
         .product-card {
             background: white;
             border-radius: 8px;
@@ -181,7 +180,6 @@
             .filters { order: -1; }
         }
     </style>
-    <!-- Load cart.js FIRST so addToCart is available -->
     <script src="js/cart.js?v=999"></script>
     <script src="js/products.js?v=999"></script>
 </head>
@@ -208,11 +206,11 @@
                 <label>Category</label>
                 <select id="category-filter">
                     <option value="All Categories">All Categories</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Fashion">Fashion</option>
-                    <option value="Home">Home & Garden</option>
-                    <option value="Food">Food & Groceries</option>
-                    <option value="Sports">Sports</option>
+                    <option value="1">Electronics</option>
+                    <option value="2">Fashion</option>
+                    <option value="3">Home & Garden</option>
+                    <option value="4">Food & Groceries</option>
+                    <option value="5">Sports</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -259,11 +257,9 @@
             }
         });
         
-        // Update cart count on page load
         if (typeof updateCartCount === 'function') {
             updateCartCount();
         } else {
-            // Fallback if cart.js isn't loaded
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
             document.getElementById('cartCount').textContent = count;

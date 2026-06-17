@@ -71,8 +71,11 @@ function filterProducts() {
             (product.name && product.name.toLowerCase().includes(searchTerm)) ||
             (product.description && product.description.toLowerCase().includes(searchTerm));
         
-        const matchesCategory = category === 'All Categories' || 
-            (product.category && product.category === category);
+        // Compare as strings to handle both number and string categories
+        const productCategory = String(product.category || '').trim();
+        const selectedCategory = String(category).trim();
+        const matchesCategory = selectedCategory === 'All Categories' || 
+            productCategory === selectedCategory;
         
         const price = parseFloat(product.price) || 0;
         const matchesPrice = price >= minPrice && price <= maxPrice;
@@ -86,7 +89,6 @@ function filterProducts() {
     } else if (sortBy === 'price_high') {
         filtered.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
     } else {
-        // newest - sort by id descending (assuming higher id = newer)
         filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
     }
     
