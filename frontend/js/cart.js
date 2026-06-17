@@ -2,28 +2,24 @@
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
-}
 
 function getToken() {
     return localStorage.getItem('token') || localStorage.getItem('access_token');
 }
 
-// Get cart from localStorage
 function getCart() {
     const cart = localStorage.getItem('cart');
     return cart ? JSON.parse(cart) : [];
 }
 
-// Save cart to localStorage
 function saveCart(cart) {
     localStorage.setItem('cart', JSON.stringify(cart));
 }
 
-// Add product to cart (called from products.js)
 function addToCart(product) {
     const cart = getCart();
     const existingItem = cart.find(item => item.product_id === product.id);
-
+    
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
@@ -35,13 +31,12 @@ function addToCart(product) {
             quantity: 1
         });
     }
-
+    
     saveCart(cart);
     updateCartCount();
     alert(product.name + ' added to cart!');
 }
 
-// Remove from cart
 function removeFromCart(productId) {
     let cart = getCart();
     cart = cart.filter(item => item.product_id !== productId);
@@ -50,13 +45,12 @@ function removeFromCart(productId) {
     updateCartCount();
 }
 
-// Update quantity
 function updateQuantity(productId, quantity) {
     if (quantity < 1) {
         removeFromCart(productId);
         return;
     }
-
+    
     const cart = getCart();
     const item = cart.find(item => item.product_id === productId);
     if (item) {
@@ -67,7 +61,6 @@ function updateQuantity(productId, quantity) {
     }
 }
 
-// Load and render cart
 function loadCart() {
     const cart = getCart();
     const container = document.getElementById('cartItems');
@@ -105,7 +98,6 @@ function updateCartTotal(total) {
     if (totalEl) totalEl.textContent = 'KES ' + total.toLocaleString();
 }
 
-// Update cart count badge
 function updateCartCount() {
     const cart = getCart();
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -113,7 +105,6 @@ function updateCartCount() {
     if (badge) badge.textContent = count;
 }
 
-// Initialize cart page
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('cartItems')) {
         loadCart();
