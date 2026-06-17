@@ -6,6 +6,8 @@
     <title>Manage Vendors - Kenya Marketplace</title>
     <link rel="stylesheet" href="css/admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="js/admin-auth.js?v=999"></script>
+    <script src="js/vendors.js?v=999"></script>
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
@@ -23,7 +25,7 @@
         </nav>
         <div class="sidebar-footer">
             <span id="adminName">Admin</span>
-            <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </aside>
 
@@ -52,60 +54,5 @@
             </table>
         </div>
     </main>
-
-    <script src="js/admin-auth.js?v=999"></script>
-    <script>
-        async function loadVendors() {
-            const token = localStorage.getItem('adminToken');
-            try {
-                const response = await fetch('https://kenya-marketplace-api.onrender.com/api/vendors/', {
-                    headers: {'Authorization': `Bearer ${token}`}
-                });
-                const vendors = await response.json();
-                
-                document.getElementById('vendorsTable').innerHTML = vendors.map(vendor => `
-                    <tr>
-                        <td>${vendor.id}</td>
-                        <td>${vendor.business_name}</td>
-                        <td>${vendor.user_id}</td>
-                        <td>${vendor.kra_pin}</td>
-                        <td>${vendor.business_phone}</td>
-                        <td>
-                            <span class="badge ${vendor.is_verified ? 'badge-success' : 'badge-warning'}">
-                                ${vendor.is_verified ? 'Verified' : 'Pending'}
-                            </span>
-                        </td>
-                        <td>${vendor.rating}</td>
-                        <td>
-                            ${!vendor.is_verified ? 
-                                `<button class="btn btn-sm btn-success" onclick="verifyVendor(${vendor.id})">Verify</button>` : 
-                                '<span class="text-success"><i class="fas fa-check"></i></span>'
-                            }
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('Error loading vendors:', error);
-            }
-        }
-
-        async function verifyVendor(vendorId) {
-            const token = localStorage.getItem('adminToken');
-            try {
-                await fetch(`https://kenya-marketplace-api.onrender.com/api/vendors/${vendorId}/verify`, {
-                    method: 'PUT',
-                    headers: {'Authorization': `Bearer ${token}`}
-                });
-                loadVendors();
-            } catch (error) {
-                alert('Error verifying vendor');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth();
-            loadVendors();
-        });
-    </script>
 </body>
 </html>

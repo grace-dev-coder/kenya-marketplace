@@ -6,6 +6,8 @@
     <title>Analytics - Kenya Marketplace</title>
     <link rel="stylesheet" href="css/admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="js/admin-auth.js?v=999"></script>
+    <script src="js/analytics.js?v=999"></script>
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
@@ -23,7 +25,7 @@
         </nav>
         <div class="sidebar-footer">
             <span id="adminName">Admin</span>
-            <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </aside>
 
@@ -38,7 +40,7 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>KES 0</h3>
+                    <h3 id="monthRevenue">KES 0</h3>
                     <p>This Month Revenue</p>
                 </div>
             </div>
@@ -47,7 +49,7 @@
                     <i class="fas fa-shopping-cart"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>0</h3>
+                    <h3 id="monthOrders">0</h3>
                     <p>This Month Orders</p>
                 </div>
             </div>
@@ -55,13 +57,10 @@
 
         <div class="section-card">
             <h3>Sales Overview</h3>
-            <p>Analytics charts would be implemented here using Chart.js or similar library.</p>
+            <div id="salesChart">
+                <p>Analytics charts would be implemented here using Chart.js or similar library.</p>
+            </div>
         </div>
     </main>
-
-    <script src="js/admin-auth.js?v=999"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', checkAdminAuth);
-    </script>
 </body>
 </html>
