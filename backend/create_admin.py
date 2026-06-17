@@ -1,32 +1,40 @@
-from app.database import SessionLocal
-from app.models import User
-from passlib.context import CryptContext
-import datetime
+import sqlite3
+import bcrypt
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+DB_PATH = 'kenya_marketplace.db'
 
-db = SessionLocal()
-
-# Check existing admin
-admin = db.query(User).filter(User.role == "admin").first()
-if admin:
-    print(f"Admin already exists: {admin.email}")
-    print("Password is whatever you set it to.")
-else:
-    # Create admin
-    admin = User(
-        email="admin@kenyamarket.com",
-        full_name="System Admin",
-        password_hash=pwd_context.hash("admin123"),
-        role="admin",
-        phone="+254700000000",
-        is_active=True,
-        created_at=datetime.datetime.utcnow()
-    )
-    db.add(admin)
-    db.commit()
+def create_admin():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Check if admin already exists
+    cursor.execute("SELECT * FROM users WHERE email = 'admin@kenyamarket.com'")
+    if cursor.fetchone():
+        print("Admin already exists: admin@kenyamarket.com")
+        conn.close()
+        return
+    
+    # Hash password
+    password_hash = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
+    
+    # Insert admin with exact columns from your schema
+    cursor.execute("""
+        INSERT INTO users (email, password_hash, full_name, phone, is_vendor, is_admin)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        'admin@kenyamarket.com',
+        password_hash,
+        'System Admin',
+        '+254700000000',
+        0,      # is_vendor = False
+        1       # is_admin = True
+    ))
+    
+    conn.commit()
+    conn.close()
     print("✅ Admin created!")
     print("Email: admin@kenyamarket.com")
     print("Password: admin123")
 
-db.close()
+if __name__ == "__main__":
+    create_admin()
