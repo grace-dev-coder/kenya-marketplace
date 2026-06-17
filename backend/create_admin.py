@@ -1,13 +1,15 @@
-import sqlite3
+import psycopg2
 import bcrypt
+import os
 
-DB_PATH = 'kenya_marketplace.db'
+# Get connection string from environment or paste it here
+DATABASE_URL = os.getenv("DATABASE_URL", "YOUR_NEON_CONNECTION_STRING_HERE")
 
 def create_admin():
-    conn = sqlite3.connect(DB_PATH)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     
-    # Check if admin already exists
+    # Check if admin exists
     cursor.execute("SELECT * FROM users WHERE email = 'admin@kenyamarket.com'")
     if cursor.fetchone():
         print("Admin already exists: admin@kenyamarket.com")
@@ -17,22 +19,23 @@ def create_admin():
     # Hash password
     password_hash = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
     
-    # Insert admin with exact columns from your schema
+    # Insert admin
     cursor.execute("""
         INSERT INTO users (email, password_hash, full_name, phone, is_vendor, is_admin)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s)
     """, (
         'admin@kenyamarket.com',
         password_hash,
         'System Admin',
         '+254700000000',
-        0,      # is_vendor = False
-        1       # is_admin = True
+        False,
+        True
     ))
     
     conn.commit()
+    cursor.close()
     conn.close()
-    print("✅ Admin created!")
+    print("✅ Admin created in Neon!")
     print("Email: admin@kenyamarket.com")
     print("Password: admin123")
 
