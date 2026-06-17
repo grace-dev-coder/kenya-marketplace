@@ -49,6 +49,26 @@ def create_product(
     db.refresh(db_product)
     return db_product
 
+@router.put("/{product_id}")
+def update_product(
+    product_id: int,
+    product_update: ProductCreate,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Update all fields from the request
+    update_data = product_update.dict()
+    for key, value in update_data.items():
+        setattr(db_product, key, value)
+    
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
 @router.delete("/{product_id}")
 def delete_product(
     product_id: int,

@@ -1,10 +1,21 @@
-// Check if API_BASE_URL already exists
+// Use var with check to prevent redeclaration
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
 
 function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
+}
+
+function getCategoryName(categoryId) {
+    const categories = {
+        '1': 'Electronics',
+        '2': 'Fashion',
+        '3': 'Home & Garden',
+        '4': 'Food & Groceries',
+        '5': 'Sports'
+    };
+    return categories[String(categoryId)] || (categoryId || '-');
 }
 
 async function loadAdminProducts() {
@@ -40,7 +51,7 @@ async function loadAdminProducts() {
                 <td>${product.name}</td>
                 <td>KES ${(product.price || 0).toLocaleString()}</td>
                 <td>${product.stock || 0}</td>
-                <td>${product.category || '-'}</td>
+                <td>${getCategoryName(product.category)}</td>
                 <td>${product.vendor_id || '-'}</td>
                 <td>
                     <button class="btn btn-sm btn-outline" onclick="editProduct(${product.id})">Edit</button>
@@ -55,6 +66,26 @@ async function loadAdminProducts() {
 }
 
 function showAddProductModal() {
+    document.getElementById('modalTitle').textContent = 'Add New Product';
+    document.getElementById('productId').value = '';
+    document.getElementById('productForm').reset();
+    
+    const modal = document.getElementById('productModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function showEditProductModal(product) {
+    document.getElementById('modalTitle').textContent = 'Edit Product #' + product.id;
+    document.getElementById('productId').value = product.id;
+    
+    // Pre-fill form
+    document.getElementById('prodName').value = product.name || '';
+    document.getElementById('prodDesc').value = product.description || '';
+    document.getElementById('prodPrice').value = product.price || '';
+    document.getElementById('prodStock').value = product.stock || '';
+    document.getElementById('prodCategory').value = String(product.category || '');
+    document.getElementById('prodVendor').value = product.vendor_id || '';
+    
     const modal = document.getElementById('productModal');
     if (modal) modal.style.display = 'flex';
 }
@@ -89,11 +120,52 @@ async function handleAddProduct(e) {
         if (response.ok) {
             closeModal();
             loadAdminProducts();
-            const form = document.getElementById('addProductForm');
-            if (form) form.reset();
+            document.getElementById('productForm').reset();
         } else {
             const err = await response.json();
             alert('Failed to add product: ' + (err.detail || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
+
+async function handleEditProduct(e) {
+    e.preventDefault();
+    const token = getAdminToken();
+    const productId = document.getElementById('productId').value;
+
+    if (!productId) {
+        alert('Product ID not found');
+        return;
+    }
+
+    const data = {
+        name: document.getElementById('prodName').value,
+        description: document.getElementById('prodDesc').value,
+        price: parseFloat(document.getElementById('prodPrice').value),
+        stock: parseInt(document.getElementById('prodStock').value),
+        category: document.getElementById('prodCategory').value,
+        vendor_id: parseInt(document.getElementById('prodVendor').value) || null
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            closeModal();
+            loadAdminProducts();
+            alert('Product updated successfully!');
+        } else {
+            const err = await response.json();
+            alert('Failed to update product: ' + (err.detail || 'Unknown error'));
         }
     } catch (error) {
         alert('Network error: ' + error.message);
@@ -121,8 +193,25 @@ async function deleteProduct(productId) {
     }
 }
 
-function editProduct(productId) {
-    alert('Edit functionality for product #' + productId + ' - implement as needed');
+async function editProduct(productId) {
+    const token = getAdminToken();
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
+            headers: {'Authorization': `Bearer ${token}`}
+        });
+        
+        if (!response.ok) {
+            alert('Failed to load product details');
+            return;
+        }
+        
+        const product = await response.json();
+        showEditProductModal(product);
+        
+    } catch (error) {
+        alert('Error loading product: ' + error.message);
+    }
 }
 
 async function importProducts(input) {
@@ -148,8 +237,22 @@ async function importProducts(input) {
     }
 }
 
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('productsTable')) {
         loadAdminProducts();
+    }
+    
+    // Attach form submit handler
+    const form = document.getElementById('productForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const productId = document.getElementById('productId').value;
+            if (productId) {
+                handleEditProduct(e);
+            } else {
+                handleAddProduct(e);
+            }
+        });
     }
 });
