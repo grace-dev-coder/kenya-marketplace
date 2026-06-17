@@ -1,4 +1,4 @@
-// Check if API_BASE_URL already exists
+// Use var with check to prevent redeclaration
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
@@ -23,7 +23,7 @@ function saveCart(cart) {
 function addToCart(product) {
     const cart = getCart();
     const existingItem = cart.find(item => item.product_id === product.id);
-    
+
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
@@ -35,10 +35,10 @@ function addToCart(product) {
             quantity: 1
         });
     }
-    
+
     saveCart(cart);
     updateCartCount();
-    alert(`${product.name} added to cart!`);
+    alert(product.name + ' added to cart!');
 }
 
 // Remove from cart
@@ -46,7 +46,7 @@ function removeFromCart(productId) {
     let cart = getCart();
     cart = cart.filter(item => item.product_id !== productId);
     saveCart(cart);
-    loadCart();
+    if (typeof loadCart === 'function') loadCart();
     updateCartCount();
 }
 
@@ -56,13 +56,13 @@ function updateQuantity(productId, quantity) {
         removeFromCart(productId);
         return;
     }
-    
+
     const cart = getCart();
     const item = cart.find(item => item.product_id === productId);
     if (item) {
         item.quantity = quantity;
         saveCart(cart);
-        loadCart();
+        if (typeof loadCart === 'function') loadCart();
         updateCartCount();
     }
 }
@@ -102,7 +102,7 @@ function loadCart() {
 
 function updateCartTotal(total) {
     const totalEl = document.getElementById('cartTotal');
-    if (totalEl) totalEl.textContent = `KES ${total.toLocaleString()}`;
+    if (totalEl) totalEl.textContent = 'KES ' + total.toLocaleString();
 }
 
 // Update cart count badge
