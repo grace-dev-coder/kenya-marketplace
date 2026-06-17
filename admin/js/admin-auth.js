@@ -1,12 +1,16 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+
+function getAdminToken() {
+    return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
+}
 
 function checkAuthStatus() {
-    const token = localStorage.getItem('admin_token');
+    const token = getAdminToken();
     const isAdmin = localStorage.getItem('is_admin');
     const currentPage = window.location.pathname.split('/').pop();
     
     // Don't check auth on login page itself
-    if (currentPage === 'login.html' || currentPage === '') return;
+    if (currentPage === 'login.html' || currentPage === '' || currentPage === 'index.html') return;
     
     if (!token || !isAdmin || isAdmin !== '1') {
         window.location.href = 'login.html';

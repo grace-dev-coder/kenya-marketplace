@@ -1,44 +1,7 @@
-// Dashboard functionality
+const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
-async function loadDashboardStats() {
-    const token = getAdminToken();
-    try {
-        const response = await fetch('http://localhost:8000/api/admin/dashboard', {
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-        const stats = await response.json();
-        
-        document.getElementById('totalUsers').textContent = stats.total_users.toLocaleString();
-        document.getElementById('totalVendors').textContent = stats.total_vendors.toLocaleString();
-        document.getElementById('totalProducts').textContent = stats.total_products.toLocaleString();
-        document.getElementById('totalOrders').textContent = stats.total_orders.toLocaleString();
-        document.getElementById('totalRevenue').textContent = `KES ${stats.total_revenue.toLocaleString()}`;
-        document.getElementById('pendingOrders').textContent = stats.pending_orders.toLocaleString();
-    } catch (error) {
-        console.error('Error loading stats:', error);
-    }
-}
-
-async function loadRecentOrders() {
-    const token = getAdminToken();
-    try {
-        const response = await fetch('http://localhost:8000/api/admin/orders?limit=5', {
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-        const orders = await response.json();
-        
-        document.getElementById('recentOrdersTable').innerHTML = orders.map(order => `
-            <tr>
-                <td>#${order.id}</td>
-                <td>User #${order.user_id}</td>
-                <td>KES ${order.total_amount.toLocaleString()}</td>
-                <td><span class="badge badge-${getStatusColor(order.status)}">${order.status}</span></td>
-                <td>${new Date(order.created_at).toLocaleDateString()}</td>
-            </tr>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading recent orders:', error);
-    }
+function getAdminToken() {
+    return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
 }
 
 function getStatusColor(status) {
@@ -52,25 +15,79 @@ function getStatusColor(status) {
     return colors[status] || 'secondary';
 }
 
-async function handleBulkImport(input) {
-    const file = input.files[0];
-    if (!file) return;
-    
+async function loadDashboardStats() {
     const token = getAdminToken();
-    const formData = new FormData();
-    formData.append('file', file);
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
     
     try {
-        const response = await fetch('http://localhost:8000/api/admin/bulk-import/products', {
-            method: 'POST',
-            headers: {'Authorization': `Bearer ${token}`},
-            body: formData
+        const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+            headers: {'Authorization': `Bearer ${token}`}
         });
         
-        const result = await response.json();
-        alert(result.message);
+        if (response.status === 401) {
+            logout();
+            return;
+        }
+        
+        const stats = await response.json();
+        
+        const totalUsers = document.getElementById('totalUsers');
+        const totalVendors = document.getElementById('totalVendors');
+        const totalProducts = document.getElementById('totalProducts');
+        const totalOrders = document.getElementById('totalOrders');
+        const totalRevenue = document.getElementById('totalRevenue');
+        const pendingOrders = document.getElementById('pendingOrders');
+        
+        if (totalUsers) totalUsers.textContent = (stats.total_users || 0).toLocaleString();
+        if (totalVendors) totalVendors.textContent = (stats.total_vendors || 0).toLocaleString();
+        if (totalProducts) totalProducts.textContent = (stats.total_products || 0).toLocaleString();
+        if (totalOrders) totalOrders.textContent = (stats.total_orders || 0).toLocaleString();
+        if (totalRevenue) totalRevenue.textContent = `KES ${(stats.total_revenue || 0).toLocaleString()}`;
+        if (pendingOrders) pendingOrders.textContent = (stats.pending_orders || 0).toLocaleString();
+        
     } catch (error) {
-        alert('Import failed');
+        console.error('Error loading stats:', error);
+    }
+}
+
+async function loadRecentOrders() {
+    const token = getAdminToken();
+    if (!token) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/?limit=5`, {
+            headers: {'Authorization': `Bearer ${token}`}
+        });
+        
+        if (response.status === 401) {
+            logout();
+            return;
+        }
+        
+        const orders = await response.json();
+        const tableBody = document.getElementById('recentOrdersTable');
+        if (!tableBody) return;
+        
+        if (!orders || orders.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No orders yet</td></tr>';
+            return;
+        }
+        
+        tableBody.innerHTML = orders.map(order => `
+            <tr>
+                <td>#${order.id}</td>
+                <td>User #${order.user_id || '-'}</td>
+                <td>KES ${(order.total_amount || 0).toLocaleString()}</td>
+                <td><span class="badge badge-${getStatusColor(order.status)}">${order.status || 'pending'}</span></td>
+                <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : '-'}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading recent orders:', error);
     }
 }
 
