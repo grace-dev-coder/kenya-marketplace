@@ -39,6 +39,13 @@
     <script>
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
+        // Check if already logged in - redirect to dashboard
+        const existingToken = localStorage.getItem('admin_token');
+        const existingAdmin = localStorage.getItem('is_admin');
+        if (existingToken && existingAdmin === '1') {
+            window.location.href = 'dashboard.html';
+        }
+
         // Wake up backend (Render free tier sleeps)
         fetch(`${API_BASE_URL}/health`).catch(() => {});
 

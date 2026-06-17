@@ -5,16 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Kenya Marketplace</title>
     <script>
-        // Check auth immediately before page renders
-        const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
-        const isAdmin = localStorage.getItem('is_admin');
-        
-        if (!token || isAdmin !== '1') {
-            window.location.replace('login.html');
-        } else {
-            // Already logged in, go to dashboard
-            window.location.replace('dashboard.html');
-        }
+        // Always go to login page first
+        window.location.replace('login.html');
     </script>
 </head>
 <body>
