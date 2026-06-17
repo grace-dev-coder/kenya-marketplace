@@ -40,6 +40,17 @@
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
         fetch(`${API_BASE_URL}/health`).catch(() => {});
 
+        // Helper to decode JWT payload
+        function decodeJWT(token) {
+            try {
+                const base64 = token.split('.')[1];
+                const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
+            }
+        }
+
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -60,37 +71,37 @@
                     body: JSON.stringify({email, password})
                 });
                 
-                // Get raw text first
                 const rawText = await response.text();
-                console.log('RAW response text:', rawText);
+                console.log('RAW response:', rawText.substring(0, 200));
                 
-                // Parse JSON
                 const data = JSON.parse(rawText);
-                console.log('Parsed data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Login failed');
                 }
                 
-                // NUCLEAR: Check is_admin by string matching on raw JSON
-                const hasAdminFlag = rawText.includes('"is_admin":true') || 
-                                     rawText.includes('"is_admin": true');
-                console.log('String check for is_admin:true:', hasAdminFlag);
+                // Decode JWT token to check is_admin inside the token itself
+                const tokenPayload = decodeJWT(data.access_token);
+                console.log('Token payload:', tokenPayload);
                 
-                // Also try property access
-                const propCheck = data.is_admin === true;
-                console.log('Property check data.is_admin === true:', propCheck);
+                // Check is_admin from multiple sources
+                const fromData = data.is_admin === true;
+                const fromToken = tokenPayload?.is_admin === true;
+                const fromUser = data.user?.is_admin === true;
                 
-                // Use whichever works
-                const isAdmin = hasAdminFlag || propCheck || data.user?.is_admin === true;
-                console.log('FINAL isAdmin result:', isAdmin);
+                console.log('is_admin from data:', fromData);
+                console.log('is_admin from token:', fromToken);
+                console.log('is_admin from user:', fromUser);
+                
+                const isAdmin = fromData || fromToken || fromUser;
+                console.log('FINAL isAdmin:', isAdmin);
                 
                 if (!isAdmin) {
-                    console.error('All checks failed. Raw text:', rawText);
                     throw new Error('Access denied. Admin only.');
                 }
                 
-                const token = data.access_token || data.token;
+                // Save and redirect
+                const token = data.access_token;
                 localStorage.setItem('admin_token', token);
                 localStorage.setItem('access_token', token);
                 localStorage.setItem('token', token);
