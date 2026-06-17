@@ -17,11 +17,13 @@
         .btn:hover { background: #e68a00; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .error { color: #e74c3c; background: #fdeaea; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; }
+        .debug { background: #e8f4f8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 12px; font-family: monospace; display: none; }
     </style>
 </head>
 <body>
     <div class="login-box">
         <h1>Admin Login</h1>
+        <div class="debug" id="debugBox"></div>
         <div class="error" id="errorMsg"></div>
         <form id="adminLoginForm">
             <div class="form-group">
@@ -40,15 +42,35 @@
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
         fetch(`${API_BASE_URL}/health`).catch(() => {});
 
+        // Decode JWT payload
+        function decodeJWT(token) {
+            try {
+                const base64 = token.split('.')[1];
+                const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function showDebug(msg) {
+            const box = document.getElementById('debugBox');
+            box.style.display = 'block';
+            box.innerHTML += msg + '<br>';
+        }
+
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const btn = document.getElementById('loginBtn');
             const errorMsg = document.getElementById('errorMsg');
+            const debugBox = document.getElementById('debugBox');
             
             btn.disabled = true;
             btn.textContent = 'Logging in...';
             errorMsg.style.display = 'none';
+            debugBox.style.display = 'none';
+            debugBox.innerHTML = '';
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -60,58 +82,34 @@
                     body: JSON.stringify({email, password})
                 });
                 
-                // Get raw text
                 const rawText = await response.text();
+                const data = JSON.parse(rawText);
                 
-                // Parse JSON
-                let data;
-                try {
-                    data = JSON.parse(rawText);
-                } catch (e) {
-                    throw new Error('Invalid response from server');
-                }
+                showDebug('Response OK: ' + response.ok);
+                showDebug('is_admin raw: ' + data.is_admin);
+                showDebug('is_admin type: ' + typeof data.is_admin);
                 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Login failed');
                 }
                 
-                // ULTIMATE FIX: Handle is_admin in every possible format
-                let isAdmin = false;
+                // Decode token to check is_admin inside JWT
+                const tokenPayload = decodeJWT(data.access_token);
+                showDebug('Token is_admin: ' + tokenPayload?.is_admin);
+                showDebug('Token is_admin type: ' + typeof tokenPayload?.is_admin);
                 
-                // Check all possible locations and types
-                const checks = [
-                    data.is_admin,
-                    data.user?.is_admin,
-                    data.user?.role === 'admin',
-                    data.role === 'admin'
-                ];
-                
-                for (const check of checks) {
-                    if (check === true) { isAdmin = true; break; }
-                    if (check === 'true') { isAdmin = true; break; }
-                    if (check === 1) { isAdmin = true; break; }
-                    if (check === '1') { isAdmin = true; break; }
-                }
-                
-                // Also check raw JSON string as fallback
-                if (!isAdmin) {
-                    const jsonStr = JSON.stringify(data);
-                    if (jsonStr.includes('"is_admin":true') || jsonStr.includes('"is_admin": true')) {
-                        isAdmin = true;
-                    }
-                }
-                
-                console.log('isAdmin result:', isAdmin);
+                // FINAL CHECK: Use token payload which definitely has is_admin
+                const isAdmin = tokenPayload && tokenPayload.is_admin === true;
+                showDebug('FINAL isAdmin: ' + isAdmin);
                 
                 if (!isAdmin) {
                     throw new Error('Access denied. Admin only.');
                 }
                 
                 // Save and redirect
-                const token = data.access_token;
-                localStorage.setItem('admin_token', token);
-                localStorage.setItem('access_token', token);
-                localStorage.setItem('token', token);
+                localStorage.setItem('admin_token', data.access_token);
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('token', data.access_token);
                 localStorage.setItem('user', JSON.stringify(data.user || {}));
                 localStorage.setItem('is_admin', '1');
                 
