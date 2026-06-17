@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head><title>Login Test</title></head>
+<body>
+    <h1>Admin Login Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+        
+        async function testLogin() {
+            const result = document.getElementById('result');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: 'admin@kenyamarket.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const rawText = await response.text();
+                result.innerHTML += '<p>Raw response: ' + rawText.substring(0, 100) + '...</p>';
+                
+                const data = JSON.parse(rawText);
+                result.innerHTML += '<p>data.is_admin = ' + data.is_admin + '</p>';
+                result.innerHTML += '<p>typeof data.is_admin = ' + typeof data.is_admin + '</p>';
+                result.innerHTML += '<p>data.is_admin === true = ' + (data.is_admin === true) + '</p>';
+                result.innerHTML += '<p>data.is_admin == true = ' + (data.is_admin == true) + '</p>';
+                result.innerHTML += '<p>Boolean(data.is_admin) = ' + Boolean(data.is_admin) + '</p>';
+                
+                // Try to decode token
+                const token = data.access_token;
+                const parts = token.split('.');
+                const payload = JSON.parse(atob(parts[1]));
+                result.innerHTML += '<p>Token is_admin = ' + payload.is_admin + '</p>';
+                result.innerHTML += '<p>Token is_admin type = ' + typeof payload.is_admin + '</p>';
+                result.innerHTML += '<p>Token is_admin === true = ' + (payload.is_admin === true) + '</p>';
+                
+            } catch (e) {
+                result.innerHTML += '<p>Error: ' + e.message + '</p>';
+            }
+        }
+        
+        testLogin();
+    </script>
+</body>
+</html>
