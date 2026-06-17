@@ -39,19 +39,15 @@
     </div>
 
     <script>
+        // Global error handler
+        window.onerror = function(msg, url, line) {
+            const debugBox = document.getElementById('debugBox');
+            debugBox.style.display = 'block';
+            debugBox.innerHTML += 'JS ERROR: ' + msg + ' at line ' + line + '<br>';
+        };
+
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
         fetch(`${API_BASE_URL}/health`).catch(() => {});
-
-        // Decode JWT payload
-        function decodeJWT(token) {
-            try {
-                const base64 = token.split('.')[1];
-                const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
-                return JSON.parse(json);
-            } catch (e) {
-                return null;
-            }
-        }
 
         function showDebug(msg) {
             const box = document.getElementById('debugBox');
@@ -64,59 +60,59 @@
             
             const btn = document.getElementById('loginBtn');
             const errorMsg = document.getElementById('errorMsg');
-            const debugBox = document.getElementById('debugBox');
             
             btn.disabled = true;
             btn.textContent = 'Logging in...';
             errorMsg.style.display = 'none';
-            debugBox.style.display = 'none';
-            debugBox.innerHTML = '';
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
+            showDebug('Starting login...');
+            
             try {
+                showDebug('Fetching...');
                 const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({email, password})
                 });
                 
-                const rawText = await response.text();
-                const data = JSON.parse(rawText);
+                showDebug('Response status: ' + response.status);
                 
-                showDebug('Response OK: ' + response.ok);
-                showDebug('is_admin raw: ' + data.is_admin);
-                showDebug('is_admin type: ' + typeof data.is_admin);
+                const rawText = await response.text();
+                showDebug('Raw text length: ' + rawText.length);
+                
+                const data = JSON.parse(rawText);
+                showDebug('data.is_admin = ' + data.is_admin);
+                showDebug('typeof = ' + typeof data.is_admin);
+                showDebug('=== true = ' + (data.is_admin === true));
                 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Login failed');
                 }
                 
-                // Decode token to check is_admin inside JWT
-                const tokenPayload = decodeJWT(data.access_token);
-                showDebug('Token is_admin: ' + tokenPayload?.is_admin);
-                showDebug('Token is_admin type: ' + typeof tokenPayload?.is_admin);
-                
-                // FINAL CHECK: Use token payload which definitely has is_admin
-                const isAdmin = tokenPayload && tokenPayload.is_admin === true;
-                showDebug('FINAL isAdmin: ' + isAdmin);
+                const isAdmin = data.is_admin === true;
+                showDebug('isAdmin result: ' + isAdmin);
                 
                 if (!isAdmin) {
+                    showDebug('CHECK FAILED - throwing error');
                     throw new Error('Access denied. Admin only.');
                 }
                 
-                // Save and redirect
+                showDebug('CHECK PASSED - saving token');
+                
                 localStorage.setItem('admin_token', data.access_token);
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('user', JSON.stringify(data.user || {}));
                 localStorage.setItem('is_admin', '1');
                 
+                showDebug('Redirecting...');
                 window.location.href = 'dashboard.html';
                 
             } catch (error) {
-                console.error('Login error:', error);
+                showDebug('CATCH ERROR: ' + error.message);
                 errorMsg.textContent = error.message || 'Login failed. Please try again.';
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
