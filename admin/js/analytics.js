@@ -33,19 +33,10 @@ function getStatusBadge(status) {
         'processing': 'badge-info',
         'shipped': 'badge-primary',
         'delivered': 'badge-success',
-        'cancelled': 'badge-danger'
-    };
-    return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'unknown'}</span>`;
-}
-
-function getPaymentBadge(status) {
-    const colors = {
-        'pending': 'badge-warning',
-        'success': 'badge-success',
-        'failed': 'badge-danger',
+        'cancelled': 'badge-danger',
         'paid': 'badge-success'
     };
-    return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'pending'}</span>`;
+    return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'unknown'}</span>`;
 }
 
 async function loadAnalytics() {
@@ -56,7 +47,6 @@ async function loadAnalytics() {
     }
 
     try {
-        // Fetch all data in parallel
         const [statsRes, salesRes, topRes, ordersRes] = await Promise.all([
             fetch(`${API_BASE_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch(`${API_BASE_URL}/api/admin/sales-chart`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -66,12 +56,11 @@ async function loadAnalytics() {
 
         if (statsRes.status === 401) { logout(); return; }
 
-        const stats = await statsRes.json();
-        const sales = await salesRes.json();
-        const topProducts = await topRes.json();
-        const recentOrders = await ordersRes.json();
+        const stats = statsRes.ok ? await statsRes.json() : {};
+        const sales = salesRes.ok ? await salesRes.json() : { labels: [], data: [] };
+        const topProducts = topRes.ok ? await topRes.json() : [];
+        const recentOrders = ordersRes.ok ? await ordersRes.json() : [];
 
-        // Update stat cards
         document.getElementById('monthRevenue').textContent = formatKES(stats.month_revenue);
         document.getElementById('monthOrders').textContent = stats.orders || 0;
         document.getElementById('totalUsers').textContent = stats.users || 0;
@@ -79,13 +68,8 @@ async function loadAnalytics() {
         document.getElementById('totalRevenue').textContent = formatKES(stats.total_revenue);
         document.getElementById('pendingOrders').textContent = stats.pending_orders || 0;
 
-        // Render sales chart
         renderSalesChart(sales.labels, sales.data);
-
-        // Render top products
         renderTopProducts(topProducts);
-
-        // Render recent orders
         renderRecentOrders(recentOrders);
 
     } catch (error) {
@@ -168,7 +152,7 @@ function renderRecentOrders(orders) {
     if (!tableBody) return;
 
     if (!orders || orders.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No orders yet</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No orders yet</td></tr>';
         return;
     }
 
@@ -178,7 +162,6 @@ function renderRecentOrders(orders) {
             <td>${order.customer_name || 'Guest'}</td>
             <td>${formatKES(order.total_amount)}</td>
             <td>${getStatusBadge(order.status)}</td>
-            <td>${getPaymentBadge(order.payment_status || order.status)}</td>
             <td>${formatDate(order.created_at)}</td>
         </tr>
     `).join('');
