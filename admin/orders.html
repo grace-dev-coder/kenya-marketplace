@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Orders - Kenya Marketplace</title>
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="js/admin-auth.js?v=999"></script>
-    <script src="js/orders.js?v=999"></script>
+    <script src="js/admin-auth.js?v=1000"></script>
+    <script src="js/orders.js?v=1000"></script>
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
@@ -32,7 +33,7 @@
     <main class="admin-main">
         <header class="admin-header">
             <h1>Manage Orders</h1>
-            <div class="filter-group">
+            <div class="header-actions">
                 <select id="statusFilter" onchange="loadOrders()">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
@@ -41,6 +42,9 @@
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
+                <button class="btn btn-outline" onclick="loadOrders()">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
             </div>
         </header>
 
@@ -58,10 +62,35 @@
                     </tr>
                 </thead>
                 <tbody id="ordersTable">
-                    <!-- Populated by JS -->
+                    <tr><td colspan="7" style="text-align:center;padding:20px;">Loading orders...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <!-- Update Status Modal -->
+    <div class="modal" id="statusModal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3>Update Order Status</h3>
+            <p>Order #<<span id="updateOrderId"></span></p>
+            <div class="form-group">
+                <label>New Status</label>
+                <select id="newStatus">
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmUpdateStatus()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display: none;"></div>
 </body>
 </html>
