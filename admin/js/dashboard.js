@@ -1,4 +1,3 @@
-// Check if API_BASE_URL already exists
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
@@ -7,15 +6,34 @@ function getAdminToken() {
     return localStorage.getItem('admin_token') || localStorage.getItem('access_token') || localStorage.getItem('token');
 }
 
-function getStatusColor(status) {
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'toast show ' + type;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 3000);
+}
+
+function getStatusBadge(status) {
     const colors = {
-        pending: 'warning',
-        paid: 'success',
-        shipped: 'info',
-        delivered: 'success',
-        cancelled: 'danger'
+        pending: 'badge-warning',
+        paid: 'badge-success',
+        shipped: 'badge-info',
+        delivered: 'badge-success',
+        cancelled: 'badge-danger'
     };
-    return colors[status] || 'secondary';
+    return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'pending'}</span>`;
+}
+
+function formatKES(amount) {
+    return 'KES ' + (amount || 0).toLocaleString('en-KE');
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 async function loadDashboardStats() {
@@ -44,15 +62,16 @@ async function loadDashboardStats() {
         const totalRevenue = document.getElementById('totalRevenue');
         const pendingOrders = document.getElementById('pendingOrders');
 
-        if (totalUsers) totalUsers.textContent = (stats.total_users || 0).toLocaleString();
-        if (totalVendors) totalVendors.textContent = (stats.total_vendors || 0).toLocaleString();
-        if (totalProducts) totalProducts.textContent = (stats.total_products || 0).toLocaleString();
-        if (totalOrders) totalOrders.textContent = (stats.total_orders || 0).toLocaleString();
-        if (totalRevenue) totalRevenue.textContent = `KES ${(stats.total_revenue || 0).toLocaleString()}`;
+        if (totalUsers) totalUsers.textContent = (stats.users || 0).toLocaleString();
+        if (totalVendors) totalVendors.textContent = (stats.total_vendors || stats.vendors || 0).toLocaleString();
+        if (totalProducts) totalProducts.textContent = (stats.products || 0).toLocaleString();
+        if (totalOrders) totalOrders.textContent = (stats.orders || 0).toLocaleString();
+        if (totalRevenue) totalRevenue.textContent = formatKES(stats.total_revenue);
         if (pendingOrders) pendingOrders.textContent = (stats.pending_orders || 0).toLocaleString();
 
     } catch (error) {
         console.error('Error loading stats:', error);
+        showToast('Failed to load dashboard stats', 'error');
     }
 }
 
@@ -83,14 +102,16 @@ async function loadRecentOrders() {
             <tr>
                 <td>#${order.id}</td>
                 <td>User #${order.user_id || '-'}</td>
-                <td>KES ${(order.total_amount || 0).toLocaleString()}</td>
-                <td><span class="badge badge-${getStatusColor(order.status)}">${order.status || 'pending'}</span></td>
-                <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : '-'}</td>
+                <td>${formatKES(order.total_amount)}</td>
+                <td>${getStatusBadge(order.status)}</td>
+                <td>${formatDate(order.created_at)}</td>
             </tr>
         `).join('');
 
     } catch (error) {
         console.error('Error loading recent orders:', error);
+        const tableBody = document.getElementById('recentOrdersTable');
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Failed to load orders</td></tr>';
     }
 }
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Kenya Marketplace</title>
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="js/admin-auth.js?v=999"></script>
     <script src="js/dashboard.js?v=999"></script>
@@ -32,11 +33,15 @@
     <main class="admin-main">
         <header class="admin-header">
             <h1>Dashboard</h1>
+            <button class="btn btn-outline" onclick="loadDashboardStats(); loadRecentOrders();">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
         </header>
 
+        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon users">
+                <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-info">
@@ -45,7 +50,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon vendors">
+                <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
                     <i class="fas fa-store"></i>
                 </div>
                 <div class="stat-info">
@@ -54,7 +59,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon products">
+                <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
                     <i class="fas fa-box"></i>
                 </div>
                 <div class="stat-info">
@@ -63,7 +68,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon orders">
+                <div class="stat-icon" style="background: #fce4ec; color: #c2185b;">
                     <i class="fas fa-shopping-bag"></i>
                 </div>
                 <div class="stat-info">
@@ -72,8 +77,8 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon revenue">
-                    <i class="fas fa-money-bill-wave"></i>
+                <div class="stat-icon" style="background: #f3e5f5; color: #7b1fa2;">
+                    <i class="fas fa-wallet"></i>
                 </div>
                 <div class="stat-info">
                     <h3 id="totalRevenue">KES 0</h3>
@@ -81,7 +86,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon pending">
+                <div class="stat-icon" style="background: #e0f2f1; color: #00796b;">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="stat-info">
@@ -91,8 +96,9 @@
             </div>
         </div>
 
+        <!-- Recent Orders -->
         <div class="section-card">
-            <h3>Recent Orders</h3>
+            <h3><i class="fas fa-list"></i> Recent Orders</h3>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -104,10 +110,13 @@
                     </tr>
                 </thead>
                 <tbody id="recentOrdersTable">
-                    <!-- Populated by JS -->
+                    <tr><td colspan="5" style="text-align:center;padding:20px;">Loading orders...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display: none;"></div>
 </body>
 </html>
