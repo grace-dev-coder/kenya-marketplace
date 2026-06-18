@@ -39,6 +39,25 @@ function getStatusBadge(status) {
     return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'unknown'}</span>`;
 }
 
+async function safeFetch(url, token) {
+    try {
+        const res = await fetch(url, { 
+            headers: { 'Authorization': `Bearer ${token}` },
+            mode: 'cors'
+        });
+        if (res.status === 401) { logout(); return null; }
+        if (!res.ok) {
+            const err = await res.text();
+            console.error(`Fetch error for ${url}:`, res.status, err);
+            return null;
+        }
+        return await res.json();
+    } catch (e) {
+        console.error(`Network error for ${url}:`, e);
+        return null;
+    }
+}
+
 async function loadAnalytics() {
     const token = getAdminToken();
     if (!token) {
@@ -46,36 +65,32 @@ async function loadAnalytics() {
         return;
     }
 
-    try {
-        const [statsRes, salesRes, topRes, ordersRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_BASE_URL}/api/admin/sales-chart`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_BASE_URL}/api/admin/top-products`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_BASE_URL}/api/admin/recent-orders`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
+    // First check database structure
+    const dbCheck = await safeFetch(`${API_BASE_URL}/api/admin/db-check`, token);
+    console.log('DB Check:', dbCheck);
 
-        if (statsRes.status === 401) { logout(); return; }
+    const stats = await safeFetch(`${API_BASE_URL}/api/admin/stats`, token);
+    const sales = await safeFetch(`${API_BASE_URL}/api/admin/sales-chart`, token);
+    const topProducts = await safeFetch(`${API_BASE_URL}/api/admin/top-products`, token);
+    const recentOrders = await safeFetch(`${API_BASE_URL}/api/admin/recent-orders`, token);
 
-        const stats = statsRes.ok ? await statsRes.json() : {};
-        const sales = salesRes.ok ? await salesRes.json() : { labels: [], data: [] };
-        const topProducts = topRes.ok ? await topRes.json() : [];
-        const recentOrders = ordersRes.ok ? await ordersRes.json() : [];
-
+    if (stats) {
         document.getElementById('monthRevenue').textContent = formatKES(stats.month_revenue);
         document.getElementById('monthOrders').textContent = stats.orders || 0;
         document.getElementById('totalUsers').textContent = stats.users || 0;
         document.getElementById('totalProducts').textContent = stats.products || 0;
         document.getElementById('totalRevenue').textContent = formatKES(stats.total_revenue);
         document.getElementById('pendingOrders').textContent = stats.pending_orders || 0;
-
-        renderSalesChart(sales.labels, sales.data);
-        renderTopProducts(topProducts);
-        renderRecentOrders(recentOrders);
-
-    } catch (error) {
-        console.error('Error loading analytics:', error);
-        showToast('Failed to load analytics data', 'error');
     }
+
+    if (sales) {
+        renderSalesChart(sales.labels, sales.data);
+    } else {
+        renderSalesChart(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], [0,0,0,0,0,0,0]);
+    }
+
+    renderTopProducts(topProducts || []);
+    renderRecentOrders(recentOrders || []);
 }
 
 function renderSalesChart(labels, data) {
@@ -105,17 +120,11 @@ function renderSalesChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
+            plugins: { legend: { display: false } },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'KES ' + value.toLocaleString();
-                        }
-                    }
+                    ticks: { callback: function(value) { return 'KES ' + value.toLocaleString(); } }
                 }
             }
         }
@@ -127,12 +136,12 @@ function renderTopProducts(products) {
     if (!container) return;
 
     if (!products || products.length === 0) {
-        container.innerHTML = '<p style="text-align:center; padding: 20px; color: #888;">No sales data yet</p>';
+        container.innerHTML = '<p style="text-align:center; padding: 20px; color: #888;">No products yet</p>';
         return;
     }
 
     container.innerHTML = products.map((p, i) => `
-        <div class="top-product-item" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
             <span style="font-weight: bold; color: #666; width: 24px;">${i + 1}</span>
             <img src="${p.image_url || 'https://via.placeholder.com/40?text=No+Image'}" 
                  alt="${p.name}" 
