@@ -1,4 +1,3 @@
-// Use var with check to prevent redeclaration
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
@@ -12,8 +11,6 @@ function getAdminToken() {
 
 function getCategoryName(categoryId) {
     const categories = {
-        '1': 'Electronics', '2': 'Fashion', '3': 'Home & Garden',
-        '4': 'Food & Groceries', '5': 'Sports',
         'Electronics': 'Electronics', 'Fashion': 'Fashion',
         'Home & Garden': 'Home & Garden', 'Food & Groceries': 'Food & Groceries',
         'Sports': 'Sports', 'Beauty': 'Beauty', 'Books': 'Books', 'Other': 'Other'
@@ -27,28 +24,18 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     toast.className = 'toast show ' + type;
     toast.style.display = 'block';
-    setTimeout(() => {
-        toast.style.display = 'none';
-        toast.className = 'toast';
-    }, 3000);
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 3000);
 }
 
 async function loadAdminProducts() {
     const token = getAdminToken();
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!token) { window.location.href = 'login.html'; return; }
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/?limit=100`, {
             headers: {'Authorization': `Bearer ${token}`}
         });
-
-        if (response.status === 401) {
-            logout();
-            return;
-        }
+        if (response.status === 401) { logout(); return; }
 
         const products = await response.json();
         allProducts = products || [];
@@ -56,9 +43,7 @@ async function loadAdminProducts() {
     } catch (error) {
         console.error('Error loading products:', error);
         const tableBody = document.getElementById('productsTable');
-        if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#e74c3c;">Failed to load products. Check console.</td></tr>';
-        }
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#e74c3c;">Failed to load products</td></tr>';
     }
 }
 
@@ -76,27 +61,18 @@ function renderProductsTable(products) {
             <td>${product.id}</td>
             <td>
                 <img src="${product.image_url || 'https://via.placeholder.com/50?text=No+Image'}" 
-                     alt="${product.name}" 
-                     width="50" height="50" 
+                     alt="${product.name}" width="50" height="50" 
                      style="object-fit:cover;border-radius:4px;"
                      onerror="this.src='https://via.placeholder.com/50?text=No+Image'">
             </td>
             <td>${product.name}</td>
             <td>KES ${product.price ? product.price.toLocaleString() : '0'}</td>
-            <td>
-                <span class="badge ${product.stock > 10 ? 'badge-success' : product.stock > 0 ? 'badge-warning' : 'badge-danger'}">
-                    ${product.stock || 0}
-                </span>
-            </td>
+            <td><span class="badge ${product.stock > 10 ? 'badge-success' : product.stock > 0 ? 'badge-warning' : 'badge-danger'}">${product.stock || 0}</span></td>
             <td>${getCategoryName(product.category)}</td>
-            <td>${product.vendor_name || product.vendor_id || 'Admin'}</td>
+            <td>${product.vendor_id || 'Admin'}</td>
             <td>
-                <button class="btn btn-sm btn-outline" onclick="showEditProductModal(${product.id})" title="Edit">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${product.id}, '${product.name.replace(/'/g, "\\'")}')" title="Delete">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn btn-sm btn-outline" onclick="showEditProductModal(${product.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${product.id}, '${product.name.replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -106,8 +82,7 @@ function filterProducts() {
     const search = document.getElementById('productSearch').value.toLowerCase();
     const filtered = allProducts.filter(p => 
         (p.name && p.name.toLowerCase().includes(search)) ||
-        (p.category && p.category.toLowerCase().includes(search)) ||
-        (p.description && p.description.toLowerCase().includes(search))
+        (p.category && p.category.toLowerCase().includes(search))
     );
     renderProductsTable(filtered);
 }
@@ -126,11 +101,9 @@ async function showEditProductModal(productId) {
         const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
             headers: {'Authorization': `Bearer ${token}`}
         });
-        
         if (!response.ok) throw new Error('Failed to fetch product');
         
         const product = await response.json();
-        
         document.getElementById('modalTitle').textContent = 'Edit Product';
         document.getElementById('productId').value = product.id;
         document.getElementById('prodName').value = product.name || '';
@@ -143,7 +116,6 @@ async function showEditProductModal(productId) {
         document.getElementById('saveBtn').textContent = 'Update Product';
         document.getElementById('productModal').style.display = 'flex';
     } catch (error) {
-        console.error('Error loading product:', error);
         showToast('Failed to load product details', 'error');
     }
 }
@@ -155,19 +127,12 @@ function closeModal() {
 function handleFormSubmit(event) {
     event.preventDefault();
     const productId = document.getElementById('productId').value;
-    if (productId) {
-        handleEditProduct(productId);
-    } else {
-        handleAddProduct();
-    }
+    productId ? handleEditProduct(productId) : handleAddProduct();
 }
 
 async function handleAddProduct() {
     const token = getAdminToken();
-    if (!token) {
-        showToast('Please login first', 'error');
-        return;
-    }
+    if (!token) { showToast('Please login first', 'error'); return; }
 
     const data = {
         name: document.getElementById('prodName').value.trim(),
@@ -177,42 +142,27 @@ async function handleAddProduct() {
         category: document.getElementById('prodCategory').value,
         image_url: document.getElementById('prodImage').value.trim() || null
     };
-
     const vendorId = document.getElementById('prodVendor').value;
-    if (vendorId) {
-        data.vendor_id = parseInt(vendorId);
-    }
+    if (vendorId) data.vendor_id = parseInt(vendorId);
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
             body: JSON.stringify(data)
         });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.detail || 'Failed to add product');
-        }
-
+        if (!response.ok) { const err = await response.json(); throw new Error(err.detail || 'Failed to add product'); }
         showToast('Product added successfully!');
         closeModal();
         loadAdminProducts();
     } catch (error) {
-        console.error('Error adding product:', error);
         showToast(error.message || 'Failed to add product', 'error');
     }
 }
 
 async function handleEditProduct(productId) {
     const token = getAdminToken();
-    if (!token) {
-        showToast('Please login first', 'error');
-        return;
-    }
+    if (!token) { showToast('Please login first', 'error'); return; }
 
     const data = {
         name: document.getElementById('prodName').value.trim(),
@@ -222,32 +172,20 @@ async function handleEditProduct(productId) {
         category: document.getElementById('prodCategory').value,
         image_url: document.getElementById('prodImage').value.trim() || null
     };
-
     const vendorId = document.getElementById('prodVendor').value;
-    if (vendorId) {
-        data.vendor_id = parseInt(vendorId);
-    }
+    if (vendorId) data.vendor_id = parseInt(vendorId);
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
             body: JSON.stringify(data)
         });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.detail || 'Failed to update product');
-        }
-
+        if (!response.ok) { const err = await response.json(); throw new Error(err.detail || 'Failed to update product'); }
         showToast('Product updated successfully!');
         closeModal();
         loadAdminProducts();
     } catch (error) {
-        console.error('Error updating product:', error);
         showToast(error.message || 'Failed to update product', 'error');
     }
 }
@@ -265,21 +203,17 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
     if (!productToDelete) return;
-    
     const token = getAdminToken();
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/${productToDelete}`, {
             method: 'DELETE',
             headers: {'Authorization': `Bearer ${token}`}
         });
-
         if (!response.ok) throw new Error('Failed to delete product');
-
         showToast('Product deleted successfully!');
         closeDeleteModal();
         loadAdminProducts();
     } catch (error) {
-        console.error('Error deleting product:', error);
         showToast('Failed to delete product', 'error');
     }
 }
@@ -334,13 +268,9 @@ async function importProducts(input) {
     input.value = '';
 }
 
-// Close modals on outside click
 window.onclick = function(event) {
-    const productModal = document.getElementById('productModal');
-    const deleteModal = document.getElementById('deleteModal');
-    if (event.target === productModal) closeModal();
-    if (event.target === deleteModal) closeDeleteModal();
+    if (event.target === document.getElementById('productModal')) closeModal();
+    if (event.target === document.getElementById('deleteModal')) closeDeleteModal();
 };
 
-// Load products on page load
 document.addEventListener('DOMContentLoaded', loadAdminProducts);
