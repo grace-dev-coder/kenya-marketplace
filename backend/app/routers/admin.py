@@ -19,10 +19,11 @@ def get_stats(db: Session = Depends(get_db)):
             fetch=True
         )
         
+        # PostgreSQL: use TO_CHAR for month filtering
         month_revenue = execute_query(
             """SELECT COALESCE(SUM(total_amount), 0) as total FROM orders 
                WHERE status != 'cancelled' 
-               AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')""",
+               AND TO_CHAR(created_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')""",
             fetch=True
         )
         
@@ -45,12 +46,13 @@ def get_stats(db: Session = Depends(get_db)):
 @router.get("/sales-chart")
 def get_sales_chart(db: Session = Depends(get_db)):
     try:
+        # PostgreSQL: use DATE_TRUNC and NOW() - INTERVAL
         sales = execute_query(
-            """SELECT strftime('%Y-%m-%d', created_at) as date, COALESCE(SUM(total_amount), 0) as total
+            """SELECT DATE(created_at) as date, COALESCE(SUM(total_amount), 0) as total
                FROM orders 
                WHERE status != 'cancelled' 
-               AND created_at >= datetime('now', '-6 days')
-               GROUP BY strftime('%Y-%m-%d', created_at)
+               AND created_at >= NOW() - INTERVAL '6 days'
+               GROUP BY DATE(created_at)
                ORDER BY date""",
             fetch=True
         )
@@ -61,7 +63,7 @@ def get_sales_chart(db: Session = Depends(get_db)):
             day = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
             day_label = (datetime.now() - timedelta(days=i)).strftime('%a %d')
             labels.append(day_label)
-            day_sales = next((s for s in sales if s["date"] == day), None)
+            day_sales = next((s for s in sales if str(s["date"]) == day), None)
             data.append(float(day_sales["total"]) if day_sales else 0)
         
         return {"labels": labels, "data": data}
@@ -86,7 +88,6 @@ def get_top_products(db: Session = Depends(get_db)):
         return products or []
     except Exception as e:
         traceback.print_exc()
-        # Fallback without joins
         try:
             products = execute_query(
                 """SELECT id, name, image_url, price, 0 as total_sold 
@@ -115,7 +116,6 @@ def get_recent_orders(db: Session = Depends(get_db)):
         return orders or []
     except Exception as e:
         traceback.print_exc()
-        # Fallback without users join
         try:
             orders = execute_query(
                 """SELECT id, total_amount, status, created_at,
@@ -146,22 +146,34 @@ def get_all_users(db: Session = Depends(get_db)):
 def check_database(db: Session = Depends(get_db)):
     """Debug endpoint to check which tables exist"""
     try:
+        # PostgreSQL: use information_schema.tables
         tables = execute_query(
-            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+            """SELECT table_name as name 
+               FROM information_schema.tables 
+               WHERE table_schema = 'public' 
+               ORDER BY table_name""",
             fetch=True
         )
         table_names = [t["name"] for t in tables] if tables else []
         
-        # Check columns in orders table
         order_cols = []
         if "orders" in table_names:
-            cols = execute_query("PRAGMA table_info(orders)", fetch=True)
+            cols = execute_query(
+                """SELECT column_name as name 
+                   FROM information_schema.columns 
+                   WHERE table_name = 'orders'""",
+                fetch=True
+            )
             order_cols = [c["name"] for c in cols] if cols else []
         
-        # Check columns in products table
         product_cols = []
         if "products" in table_names:
-            cols = execute_query("PRAGMA table_info(products)", fetch=True)
+            cols = execute_query(
+                """SELECT column_name as name 
+                   FROM information_schema.columns 
+                   WHERE table_name = 'products'""",
+                fetch=True
+            )
             product_cols = [c["name"] for c in cols] if cols else []
         
         return {

@@ -29,12 +29,11 @@ function formatDate(dateStr) {
 
 function getStatusBadge(status) {
     const colors = {
-        'pending': 'badge-warning',
-        'processing': 'badge-info',
-        'shipped': 'badge-primary',
-        'delivered': 'badge-success',
-        'cancelled': 'badge-danger',
-        'paid': 'badge-success'
+        pending: 'badge-warning',
+        paid: 'badge-success',
+        shipped: 'badge-info',
+        delivered: 'badge-success',
+        cancelled: 'badge-danger'
     };
     return `<span class="badge ${colors[status] || 'badge-secondary'}">${status || 'unknown'}</span>`;
 }
@@ -42,8 +41,7 @@ function getStatusBadge(status) {
 async function safeFetch(url, token) {
     try {
         const res = await fetch(url, { 
-            headers: { 'Authorization': `Bearer ${token}` },
-            mode: 'cors'
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.status === 401) { logout(); return null; }
         if (!res.ok) {
@@ -65,7 +63,6 @@ async function loadAnalytics() {
         return;
     }
 
-    // First check database structure
     const dbCheck = await safeFetch(`${API_BASE_URL}/api/admin/db-check`, token);
     console.log('DB Check:', dbCheck);
 
