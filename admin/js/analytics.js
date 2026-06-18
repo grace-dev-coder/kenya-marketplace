@@ -71,16 +71,26 @@ async function loadAnalytics() {
     const topProducts = await safeFetch(`${API_BASE_URL}/api/admin/top-products`, token);
     const recentOrders = await safeFetch(`${API_BASE_URL}/api/admin/recent-orders`, token);
 
-    if (stats) {
-        document.getElementById('monthRevenue').textContent = formatKES(stats.month_revenue);
-        document.getElementById('monthOrders').textContent = stats.orders || 0;
-        document.getElementById('totalUsers').textContent = stats.users || 0;
-        document.getElementById('totalProducts').textContent = stats.products || 0;
-        document.getElementById('totalRevenue').textContent = formatKES(stats.total_revenue);
-        document.getElementById('pendingOrders').textContent = stats.pending_orders || 0;
-    }
+    console.log('Stats:', stats);
+    console.log('Sales:', sales);
+    console.log('Top Products:', topProducts);
+    console.log('Recent Orders:', recentOrders);
 
-    if (sales) {
+    // Update stats cards with null-safe access
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    setText('monthRevenue', formatKES(stats?.month_revenue));
+    setText('monthOrders', stats?.orders ?? 0);
+    setText('totalUsers', stats?.users ?? 0);
+    setText('totalProducts', stats?.products ?? 0);
+    setText('totalRevenue', formatKES(stats?.total_revenue));
+    setText('pendingOrders', stats?.pending_orders ?? 0);
+
+    // Render chart
+    if (sales && Array.isArray(sales.labels) && Array.isArray(sales.data)) {
         renderSalesChart(sales.labels, sales.data);
     } else {
         renderSalesChart(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], [0,0,0,0,0,0,0]);
@@ -92,40 +102,62 @@ async function loadAnalytics() {
 
 function renderSalesChart(labels, data) {
     const ctx = document.getElementById('salesChart');
-    if (!ctx) return;
-
-    if (salesChartInstance) {
-        salesChartInstance.destroy();
+    if (!ctx) {
+        console.error('Canvas element salesChart not found');
+        return;
     }
 
-    salesChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Revenue (KES)',
-                data: data,
-                borderColor: '#1976d2',
-                backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 4,
-                pointBackgroundColor: '#1976d2'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { callback: function(value) { return 'KES ' + value.toLocaleString(); } }
+    // Destroy existing chart
+    if (salesChartInstance) {
+        salesChartInstance.destroy();
+        salesChartInstance = null;
+    }
+
+    // Fix canvas dimensions
+    const container = ctx.parentElement;
+    if (container) {
+        container.style.height = '300px';
+        container.style.position = 'relative';
+    }
+    ctx.style.height = '300px';
+    ctx.style.width = '100%';
+
+    try {
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels || [],
+                datasets: [{
+                    label: 'Revenue (KES)',
+                    data: data || [],
+                    borderColor: '#1976d2',
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#1976d2'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            callback: function(value) { 
+                                return 'KES ' + value.toLocaleString(); 
+                            } 
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
+    } catch (e) {
+        console.error('Chart.js error:', e);
+    }
 }
 
 function renderTopProducts(products) {

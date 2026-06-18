@@ -104,7 +104,7 @@
 .toast.success { background: #4caf50; }
 .toast.error { background: #f44336; }
 
-/* Chart fix */
+/* Chart fix - critical for preventing canvas overflow */
 .chart-container {
     position: relative;
     height: 300px;
@@ -120,5 +120,9 @@
 @media (max-width: 768px) {
     .analytics-row {
         flex-direction: column;
+    }
+    
+    .chart-container {
+        height: 250px;
     }
 }
