@@ -1,163 +1,150 @@
-// Use var with check to prevent redeclaration
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
 
-window.loadedProducts = [];
-window.filteredProducts = [];
+function getToken() {
+    return localStorage.getItem('access_token') || localStorage.getItem('token');
+}
+
+function getUser() {
+    try {
+        return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+        return null;
+    }
+}
 
 async function loadProducts() {
     try {
-        const response = await fetch(API_BASE_URL + '/api/products/?limit=100');
+        const response = await fetch(`${API_BASE_URL}/api/products/`);
         const products = await response.json();
-        
-        window.loadedProducts = products;
-        window.filteredProducts = products;
-        
-        const container = document.getElementById('products-container');
-        const loading = document.getElementById('loading');
-        
-        if (loading) loading.style.display = 'none';
-        if (!container) return;
-        
-        if (!products || products.length === 0) {
-            container.innerHTML = '<p class="no-products">No products available</p>';
-            return;
-        }
-        
         renderProducts(products);
-        
     } catch (error) {
         console.error('Error loading products:', error);
+        document.getElementById('productsGrid').innerHTML = '<p style="text-align:center; padding:40px; color:#e74c3c;">Failed to load products</p>';
     }
 }
 
 function renderProducts(products) {
-    const container = document.getElementById('products-container');
+    const container = document.getElementById('productsGrid');
     if (!container) return;
-    
+
     if (!products || products.length === 0) {
-        container.innerHTML = '<p class="no-products">No products found matching your criteria</p>';
+        container.innerHTML = '<p style="text-align:center; padding:40px;">No products available</p>';
         return;
     }
-    
+
     container.innerHTML = products.map(product => `
-        <div class="product-card">
-            <img src="${product.image_url || 'https://via.placeholder.com/250'}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/250'">
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <p class="price">KES ${(product.price || 0).toLocaleString()}</p>
-                <p class="category">${product.category || 'Uncategorized'}</p>
-                <div class="product-actions">
-                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Details</a>
-                    <button onclick="addProductToCart(${product.id})" class="btn btn-primary">
-                        Add to Cart
+        <div class="product-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s;">
+            <div style="position: relative; padding-top: 75%; overflow: hidden;">
+                <img src="${product.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}" 
+                     alt="${product.name}" 
+                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+                     onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
+            </div>
+            <div style="padding: 16px;">
+                <h3 style="margin: 0 0 8px; font-size: 1.1em;">${product.name}</h3>
+                <p style="color: #666; font-size: 0.9em; margin: 0 0 12px; line-height: 1.4;">${product.description || ''}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.2em; font-weight: 700; color: #1976d2;">KES ${product.price ? product.price.toLocaleString() : '0'}</span>
+                    <span style="font-size: 0.85em; color: #666;">${product.stock || 0} left</span>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button onclick="addToCart(${product.id})" class="btn btn-primary" style="flex: 1; padding: 10px;">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
                     </button>
+                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline" style="padding: 10px;">
+                        <i class="fas fa-eye"></i>
+                    </a>
                 </div>
             </div>
         </div>
     `).join('');
 }
 
-function filterProducts() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const category = document.getElementById('category-filter').value;
-    const minPrice = parseFloat(document.getElementById('min-price').value) || 0;
-    const maxPrice = parseFloat(document.getElementById('max-price').value) || Infinity;
-    const sortBy = document.getElementById('sort-by').value;
-    
-    let filtered = window.loadedProducts.filter(product => {
-        const matchesSearch = !searchTerm || 
-            (product.name && product.name.toLowerCase().includes(searchTerm)) ||
-            (product.description && product.description.toLowerCase().includes(searchTerm));
-        
-        // Compare as strings to handle both number and string categories
-        const productCategory = String(product.category || '').trim();
-        const selectedCategory = String(category).trim();
-        const matchesCategory = selectedCategory === 'All Categories' || 
-            productCategory === selectedCategory;
-        
-        const price = parseFloat(product.price) || 0;
-        const matchesPrice = price >= minPrice && price <= maxPrice;
-        
-        return matchesSearch && matchesCategory && matchesPrice;
-    });
-    
-    // Sort
-    if (sortBy === 'price_low') {
-        filtered.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
-    } else if (sortBy === 'price_high') {
-        filtered.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
-    } else {
-        filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
-    }
-    
-    window.filteredProducts = filtered;
-    renderProducts(filtered);
-}
-
-function clearFilters() {
-    document.getElementById('search-input').value = '';
-    document.getElementById('category-filter').value = 'All Categories';
-    document.getElementById('min-price').value = '';
-    document.getElementById('max-price').value = '';
-    document.getElementById('sort-by').value = 'newest';
-    
-    window.filteredProducts = window.loadedProducts;
-    renderProducts(window.loadedProducts);
-}
-
-function addProductToCart(productId) {
-    const product = window.loadedProducts.find(p => p.id === productId);
-    if (!product) {
-        console.error('Product not found:', productId);
-        alert('Error: Product not found');
+async function addToCart(productId) {
+    const token = getToken();
+    if (!token) {
+        alert('Please log in first');
+        window.location.href = 'login.html';
         return;
     }
-    
-    if (typeof addToCart === 'function') {
-        addToCart(product);
-    } else {
-        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existingItem = cart.find(item => item.product_id === product.id);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                product_id: product.id,
-                product_name: product.name,
-                price: product.price,
-                image_url: product.image_url,
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/cart/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                product_id: productId,
                 quantity: 1
-            });
+            })
+        });
+
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'login.html';
+            return;
         }
-        
-        localStorage.setItem('cart', JSON.stringify(cart));
-        alert(product.name + ' added to cart!');
-        
-        if (typeof updateCartCount === 'function') {
+
+        if (response.ok) {
+            alert('Added to cart!');
             updateCartCount();
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Failed to add to cart');
         }
+    } catch (error) {
+        console.error('Add to cart error:', error);
+        alert('Network error. Please try again.');
     }
 }
 
-// Initialize on page load
+function updateCartCount() {
+    const token = getToken();
+    if (!token) return;
+
+    fetch(`${API_BASE_URL}/api/cart/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const countEl = document.getElementById('cartCount');
+        if (countEl) {
+            countEl.textContent = data.count || 0;
+        }
+    })
+    .catch(err => console.error('Cart count error:', err));
+}
+
+function filterProducts() {
+    const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const category = document.getElementById('categoryFilter')?.value || '';
+    
+    // Reload and filter
+    fetch(`${API_BASE_URL}/api/products/`)
+        .then(res => res.json())
+        .then(products => {
+            let filtered = products;
+            if (search) {
+                filtered = filtered.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(search)) ||
+                    (p.description && p.description.toLowerCase().includes(search))
+                );
+            }
+            if (category) {
+                filtered = filtered.filter(p => p.category === category);
+            }
+            renderProducts(filtered);
+        })
+        .catch(err => console.error('Filter error:', err));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('products-container')) {
+    if (document.getElementById('productsGrid')) {
         loadProducts();
-        
-        // Attach event listeners
-        const searchBtn = document.getElementById('search-btn');
-        const searchInput = document.getElementById('search-input');
-        const applyFiltersBtn = document.getElementById('apply-filters');
-        const clearFiltersBtn = document.getElementById('clear-filters');
-        
-        if (searchBtn) searchBtn.addEventListener('click', filterProducts);
-        if (searchInput) searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') filterProducts();
-        });
-        if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', filterProducts);
-        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+        updateCartCount();
     }
 });
