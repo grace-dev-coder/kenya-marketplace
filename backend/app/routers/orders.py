@@ -32,7 +32,9 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
 @router.post("/checkout")
 def checkout(order_data: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     try:
-        user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+        user_id = current_user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User ID not found in token")
         
         # Get cart items
         cart_items = execute_query(

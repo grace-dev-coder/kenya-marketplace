@@ -8,7 +8,9 @@ router = APIRouter(prefix="/api/cart", tags=["cart"])
 
 @router.get("/")
 def get_cart(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
     
     cart_items = execute_query(
         """SELECT c.id, c.product_id, c.quantity, 
@@ -30,14 +32,16 @@ def get_cart(current_user=Depends(get_current_user), db: Session = Depends(get_d
 
 @router.post("/")
 def add_to_cart(item: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
+    
     product_id = item.get("product_id")
     quantity = item.get("quantity", 1)
     
     if not product_id:
         raise HTTPException(status_code=400, detail="product_id is required")
     
-    # Check if product exists and has stock
     product = execute_query(
         "SELECT * FROM products WHERE id = :id",
         {"id": product_id},
@@ -46,7 +50,6 @@ def add_to_cart(item: dict, current_user=Depends(get_current_user), db: Session 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Check if already in cart
     existing = execute_query(
         "SELECT * FROM cart_items WHERE user_id = :user_id AND product_id = :product_id",
         {"user_id": user_id, "product_id": product_id},
@@ -54,13 +57,11 @@ def add_to_cart(item: dict, current_user=Depends(get_current_user), db: Session 
     )
     
     if existing:
-        # Update quantity
         execute_query(
             "UPDATE cart_items SET quantity = quantity + :qty WHERE user_id = :user_id AND product_id = :product_id",
             {"user_id": user_id, "product_id": product_id, "qty": quantity}
         )
     else:
-        # Insert new
         execute_query(
             "INSERT INTO cart_items (user_id, product_id, quantity) VALUES (:user_id, :product_id, :quantity)",
             {"user_id": user_id, "product_id": product_id, "quantity": quantity}
@@ -70,11 +71,13 @@ def add_to_cart(item: dict, current_user=Depends(get_current_user), db: Session 
 
 @router.put("/{cart_item_id}")
 def update_cart_item(cart_item_id: int, item: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
+    
     quantity = item.get("quantity", 1)
     
     if quantity < 1:
-        # Remove item
         execute_query(
             "DELETE FROM cart_items WHERE id = :id AND user_id = :user_id",
             {"id": cart_item_id, "user_id": user_id}
@@ -89,7 +92,9 @@ def update_cart_item(cart_item_id: int, item: dict, current_user=Depends(get_cur
 
 @router.delete("/{cart_item_id}")
 def remove_from_cart(cart_item_id: int, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
     
     execute_query(
         "DELETE FROM cart_items WHERE id = :id AND user_id = :user_id",
@@ -99,7 +104,9 @@ def remove_from_cart(cart_item_id: int, current_user=Depends(get_current_user), 
 
 @router.delete("/")
 def clear_cart(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
     
     execute_query(
         "DELETE FROM cart_items WHERE user_id = :user_id",
