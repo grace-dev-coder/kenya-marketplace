@@ -1,4 +1,9 @@
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// Don't redeclare API_BASE_URL - main.js already defines it
+// Use the existing one or fallback
+
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 function getToken() {
     return localStorage.getItem('access_token') || localStorage.getItem('token');

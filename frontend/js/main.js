@@ -1,17 +1,19 @@
 // js/main.js - Kenya Marketplace Main JavaScript
 
-const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com/api';
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('API Base URL:', API_BASE_URL);
-    
+
     // Initialize cart count
     updateCartCount();
-    
+
     // Search functionality
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
-    
+
     if (searchBtn) {
         searchBtn.addEventListener('click', performSearch);
     }
@@ -20,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') performSearch();
         });
     }
-    
+
     // Check auth status
     checkAuthStatus();
 });
@@ -44,7 +46,7 @@ function checkAuthStatus() {
     const token = localStorage.getItem('token');
     const authSection = document.getElementById('authSection');
     if (token && authSection) {
-        authSection.innerHTML = '<a href="#" onclick="logout()">Logout</a>';
+        authSection.innerHTML = 'Logout';
     }
 }
 
