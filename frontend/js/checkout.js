@@ -1,6 +1,3 @@
-// Don't redeclare API_BASE_URL - main.js already defines it
-// Use the existing one or fallback
-
 if (typeof API_BASE_URL === 'undefined') {
     var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 }
@@ -21,15 +18,20 @@ async function loadCheckoutSummary() {
             headers: {'Authorization': `Bearer ${token}`}
         });
         
+        console.log('Cart response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to load cart');
+            const errorText = await response.text();
+            console.error('Cart error response:', errorText);
+            throw new Error(`Failed to load cart: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
+        console.log('Cart data:', data);
         renderCheckoutSummary(data);
     } catch (error) {
         console.error('Error loading checkout:', error);
-        document.getElementById('checkoutItems').innerHTML = '<p style="color: #e74c3c;">Failed to load cart. <a href="cart.html">Go to cart</a></p>';
+        document.getElementById('checkoutItems').innerHTML = `<p style="color: #e74c3c;">${error.message}. <a href="cart.html">Go to cart</a></p>`;
     }
 }
 
@@ -92,6 +94,8 @@ async function processCheckout() {
             })
         });
 
+        console.log('Checkout response status:', response.status);
+        
         if (response.ok) {
             const result = await response.json();
             alert(`Order placed successfully! Order #${result.order_id}. Check your phone for M-Pesa prompt.`);
