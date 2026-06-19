@@ -4,7 +4,8 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 import os
 
-from app.database import get_db, execute_query
+from app.database import get_db
+from app.models import User
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 ALGORITHM = "HS256"
@@ -24,24 +25,23 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if not email:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        # Look up user id from database
-        user = execute_query(
-            "SELECT id, email, full_name, is_admin FROM users WHERE email = :email",
-            {"email": email},
-            fetch=True
-        )
+        # Use SQLAlchemy ORM to get user (matching auth.py style)
+        user = db.query(User).filter(User.email == email).first()
         
-        if user and len(user) > 0:
-            return {
-                "id": user[0]["id"],
-                "email": user[0]["email"],
-                "full_name": user[0]["full_name"],
-                "is_admin": user[0]["is_admin"]
-            }
-
-        return {"email": email, "is_admin": is_admin}
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_admin": user.is_admin,
+            "is_vendor": user.is_vendor
+        }
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Auth error: {str(e)}")
 
 async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     user = await get_current_user(credentials, db)

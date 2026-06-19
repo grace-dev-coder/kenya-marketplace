@@ -9,16 +9,31 @@ function getToken() {
 async function loadCheckoutSummary() {
     const token = getToken();
     if (!token) {
+        console.log('No token found, redirecting to login');
         window.location.href = 'login.html';
         return;
     }
 
+    console.log('Token found:', token.substring(0, 20) + '...');
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/cart/`, {
-            headers: {'Authorization': `Bearer ${token}`}
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
         
         console.log('Cart response status:', response.status);
+        
+        if (response.status === 401) {
+            console.error('Token expired or invalid');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token');
+            alert('Your session has expired. Please log in again.');
+            window.location.href = 'login.html';
+            return;
+        }
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -70,6 +85,12 @@ async function processCheckout() {
     const phone = document.getElementById('phoneNumber').value.trim();
     const address = document.getElementById('deliveryAddress').value.trim();
 
+    if (!token) {
+        alert('Please log in first');
+        window.location.href = 'login.html';
+        return;
+    }
+
     if (!phone || !address) {
         alert('Please fill in all required fields');
         return;
@@ -95,6 +116,14 @@ async function processCheckout() {
         });
 
         console.log('Checkout response status:', response.status);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token');
+            alert('Your session has expired. Please log in again.');
+            window.location.href = 'login.html';
+            return;
+        }
         
         if (response.ok) {
             const result = await response.json();
