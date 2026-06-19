@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db, execute_query
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -28,29 +29,94 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Order not found")
     return order[0]
 
-@router.post("/")
-def create_order(order: dict, db: Session = Depends(get_db)):
+@router.post("/checkout")
+def checkout(order_data: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     try:
+        user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+        
+        # Get cart items
+        cart_items = execute_query(
+            """SELECT c.product_id, c.quantity, p.price, p.name
+               FROM cart_items c
+               JOIN products p ON c.product_id = p.id
+               WHERE c.user_id = :user_id""",
+            {"user_id": user_id},
+            fetch=True
+        )
+        
+        if not cart_items:
+            raise HTTPException(status_code=400, detail="Cart is empty")
+        
+        # Calculate total
+        total_amount = sum(item["price"] * item["quantity"] for item in cart_items)
+        
+        # Create order
         execute_query(
-            """INSERT INTO orders (user_id, total_amount, status, payment_method, shipping_address, shipping_phone)
-               VALUES (:user_id, :total_amount, :status, :payment_method, :shipping_address, :shipping_phone)""",
+            """INSERT INTO orders (user_id, total_amount, status, payment_method)
+               VALUES (:user_id, :total_amount, :status, :payment_method)""",
             {
-                "user_id": order.get("user_id"),
-                "total_amount": order.get("total_amount"),
-                "status": order.get("status", "pending"),
-                "payment_method": order.get("payment_method"),
-                "shipping_address": order.get("shipping_address", ""),
-                "shipping_phone": order.get("shipping_phone", "")
+                "user_id": user_id,
+                "total_amount": total_amount,
+                "status": "pending",
+                "payment_method": order_data.get("payment_method", "mpesa")
             }
         )
-        return {"message": "Order created successfully"}
+        
+        # Get the created order ID
+        order_result = execute_query(
+            "SELECT id FROM orders WHERE user_id = :user_id ORDER BY created_at DESC LIMIT 1",
+            {"user_id": user_id},
+            fetch=True
+        )
+        order_id = order_result[0]["id"] if order_result else None
+        
+        # Create order items
+        for item in cart_items:
+            execute_query(
+                """INSERT INTO order_items (order_id, product_id, quantity, price_at_time)
+                   VALUES (:order_id, :product_id, :quantity, :price)""",
+                {
+                    "order_id": order_id,
+                    "product_id": item["product_id"],
+                    "quantity": item["quantity"],
+                    "price": item["price"]
+                }
+            )
+        
+        # Clear cart
+        execute_query(
+            "DELETE FROM cart_items WHERE user_id = :user_id",
+            {"user_id": user_id}
+        )
+        
+        # Create payment record
+        phone = order_data.get("phone_number", "")
+        execute_query(
+            """INSERT INTO payments (order_id, amount, phone_number, status)
+               VALUES (:order_id, :amount, :phone_number, :status)""",
+            {
+                "order_id": order_id,
+                "amount": total_amount,
+                "phone_number": phone,
+                "status": "pending"
+            }
+        )
+        
+        return {
+            "message": "Order placed successfully",
+            "order_id": order_id,
+            "total_amount": total_amount,
+            "phone_number": phone
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Checkout failed: {str(e)}")
 
 @router.put("/{order_id}")
 def update_order(order_id: int, order_update: dict, db: Session = Depends(get_db)):
     try:
-        # Check if order exists
         existing = execute_query(
             "SELECT * FROM orders WHERE id = :id",
             {"id": order_id},
@@ -59,8 +125,7 @@ def update_order(order_id: int, order_update: dict, db: Session = Depends(get_db
         if not existing:
             raise HTTPException(status_code=404, detail="Order not found")
 
-        # Build dynamic update query
-        allowed_fields = ['status', 'shipping_address', 'shipping_phone', 'payment_method']
+        allowed_fields = ['status', 'payment_method']
         updates = []
         params = {"id": order_id}
 
