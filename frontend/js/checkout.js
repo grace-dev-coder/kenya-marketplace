@@ -6,39 +6,33 @@ function getToken() {
     return localStorage.getItem('access_token') || localStorage.getItem('token');
 }
 
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#f44336' : '#4caf50';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
 async function loadCheckoutSummary() {
     const token = getToken();
     if (!token) {
-        console.log('No token found, redirecting to login');
         window.location.href = 'login.html';
         return;
     }
 
-    console.log('Token found:', token.substring(0, 20) + '...');
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/cart/`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: {'Authorization': `Bearer ${token}`}
         });
         
         console.log('Cart response status:', response.status);
         
-        if (response.status === 401) {
-            console.error('Token expired or invalid');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token');
-            alert('Your session has expired. Please log in again.');
-            window.location.href = 'login.html';
-            return;
-        }
-        
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Cart error response:', errorText);
-            throw new Error(`Failed to load cart: ${response.status} - ${errorText}`);
+            console.error('Cart error response:', response.status, errorText);
+            throw new Error(`Failed to load cart: ${response.status}`);
         }
         
         const data = await response.json();
@@ -55,17 +49,18 @@ function renderCheckoutSummary(cartData) {
     if (!container) return;
 
     if (!cartData.items || cartData.items.length === 0) {
-        container.innerHTML = '<p>Your cart is empty. <a href="products.html">Continue shopping</a></p>';
+        container.innerHTML = '<p style="text-align: center; padding: 20px;">Your cart is empty. <a href="products.html">Continue shopping</a></p>';
         return;
     }
 
     container.innerHTML = cartData.items.map(item => `
-        <div class="checkout-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee;">
-            <span>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+            <span style="display: flex; align-items: center; gap: 10px;">
                 <img src="${item.image_url || 'https://via.placeholder.com/40?text=No+Image'}" 
-                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; vertical-align: middle; margin-right: 10px;"
+                     alt="${item.product_name}" 
+                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
                      onerror="this.src='https://via.placeholder.com/40?text=No+Image'">
-                ${item.product_name} x ${item.quantity}
+                <span>${item.product_name} x ${item.quantity}</span>
             </span>
             <span style="font-weight: 600;">KES ${(item.price * item.quantity).toLocaleString()}</span>
         </div>
@@ -116,14 +111,6 @@ async function processCheckout() {
         });
 
         console.log('Checkout response status:', response.status);
-        
-        if (response.status === 401) {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token');
-            alert('Your session has expired. Please log in again.');
-            window.location.href = 'login.html';
-            return;
-        }
         
         if (response.ok) {
             const result = await response.json();

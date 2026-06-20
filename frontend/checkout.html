@@ -7,71 +7,83 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Load main.js first so API_BASE_URL is defined -->
-    <script src="js/main.js?v=1001"></script>
-    <script src="js/auth.js?v=1001"></script>
-    <script src="js/checkout.js?v=1001"></script>
+    <script src="js/main.js?v=1004"></script>
+    <script src="js/auth.js?v=1004"></script>
+    <script src="js/checkout.js?v=1004"></script>
 </head>
 <body>
-    <!-- Header -->
     <header class="main-header">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
             <a href="index.html" class="logo">
-                <img src="assets/logo.png" alt="Kenya Marketplace">
+                <img src="assets/logo.png" alt="Kenya Marketplace" style="height: 40px;">
             </a>
-            <nav class="main-nav">
+            <nav class="main-nav" style="display: flex; gap: 20px; align-items: center;">
                 <a href="index.html">Home</a>
                 <a href="products.html">Products</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart</a>
+                <a href="cart.html">
+                    <i class="fas fa-shopping-cart"></i> 
+                    Cart (<span id="cartCount">0</span>)
+                </a>
                 <a href="orders.html">Orders</a>
+                <div id="authButtons" style="display: flex; gap: 10px;">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div id="userMenu" style="display: none; align-items: center; gap: 10px;">
+                    <span id="userName">User</span>
+                    <a href="#" onclick="logout()" class="btn btn-outline">Logout</a>
+                </div>
             </nav>
         </div>
     </header>
 
-    <main class="container" style="padding: 40px 20px;">
+    <main class="container" style="padding: 40px 20px; max-width: 1000px; margin: 0 auto;">
         <h1><i class="fas fa-credit-card"></i> Checkout</h1>
         
         <div class="checkout-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
             <!-- Order Summary -->
-            <div class="checkout-summary">
+            <div class="checkout-summary" style="background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                 <h3><i class="fas fa-shopping-bag"></i> Order Summary</h3>
-                <div id="checkoutItems" style="margin: 20px 0;">
+                <div id="checkoutItems" style="margin: 20px 0; min-height: 100px;">
                     <p>Loading cart...</p>
                 </div>
                 
                 <div class="checkout-totals" style="border-top: 2px solid #eee; padding-top: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span>Subtotal</span>
-                        <span id="subtotal">KES 0</span>
+                        <span id="subtotal" style="font-weight: 600;">KES 0</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span>Shipping</span>
-                        <span id="shipping">KES 200</span>
+                        <span id="shipping" style="font-weight: 600;">KES 200</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 1.2em; font-weight: bold; border-top: 1px solid #eee; padding-top: 10px;">
                         <span>Total</span>
-                        <span id="total">KES 0</span>
+                        <span id="total" style="color: #1976d2;">KES 0</span>
                     </div>
                 </div>
             </div>
 
             <!-- Payment Details -->
-            <div class="checkout-payment">
+            <div class="checkout-payment" style="background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                 <h3><i class="fas fa-mobile-alt"></i> M-Pesa Payment</h3>
                 <p style="color: #666; margin-bottom: 20px;">You will receive an STK push on your phone. Enter your M-Pesa PIN to complete payment.</p>
                 
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Phone Number *</label>
-                    <input type="tel" id="phoneNumber" placeholder="2547XX XXX XXX" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                    <small style="color: #888;">Format: 2547XXXXXXXX</small>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Phone Number *</label>
+                    <input type="tel" id="phoneNumber" placeholder="2547XX XXX XXX" 
+                           style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1em;">
+                    <small style="color: #888; display: block; margin-top: 5px;">Format: 2547XXXXXXXX</small>
                 </div>
                 
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Delivery Address *</label>
-                    <textarea id="deliveryAddress" rows="3" placeholder="Enter your delivery address" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Delivery Address *</label>
+                    <textarea id="deliveryAddress" rows="4" placeholder="Enter your full delivery address including street, building, and landmarks" 
+                              style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1em; resize: vertical;"></textarea>
                 </div>
                 
-                <button onclick="processCheckout()" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 1.1em;">
+                <button onclick="processCheckout()" class="btn btn-primary" 
+                        style="width: 100%; padding: 16px; font-size: 1.1em; border-radius: 8px; cursor: pointer;">
                     <i class="fas fa-lock"></i> Place Order & Pay with M-Pesa
                 </button>
                 
@@ -81,5 +93,14 @@
             </div>
         </div>
     </main>
+
+    <footer style="background: #1a1a2e; color: #fff; padding: 40px 20px; margin-top: 60px;">
+        <div class="container" style="text-align: center;">
+            <p>&copy; 2024 Kenya Marketplace. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display: none; position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; border-radius: 8px; color: #fff; font-weight: 500; z-index: 1000;"></div>
 </body>
 </html>
