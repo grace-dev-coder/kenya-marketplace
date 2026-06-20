@@ -12,9 +12,10 @@ let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 // DOM Elements
 const productsGrid = document.getElementById('products-grid');
 const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
 const categoryFilter = document.getElementById('category-filter');
+const resultsCount = document.getElementById('results-count');
 const cartCount = document.getElementById('cart-count');
-const navUser = document.getElementById('nav-user');
 const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toast-message');
 
@@ -26,32 +27,40 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('API Base URL:', API_BASE_URL);
     loadProducts();
     updateCartCount();
-    checkAuth();
+
+    // Search events
+    searchBtn.addEventListener('click', handleSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSearch();
+    });
+
+    // Category filter
+    categoryFilter.addEventListener('change', filterProducts);
+
+    // Check for search query in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    if (searchQuery) {
+        searchInput.value = searchQuery;
+        filterProducts();
+    }
 });
 
 // ============================================
-// AUTHENTICATION
+// MENU TOGGLE (matches index.html)
 // ============================================
 
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (token && user.name) {
-        navUser.innerHTML = `
-            <span><i class="fas fa-user-circle"></i> ${user.name}</span>
-            <button class="btn-logout" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        `;
-    }
+function toggleMenu() {
+    document.getElementById('dropdownMenu').classList.toggle('active');
 }
 
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = 'login.html';
-}
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('dropdownMenu');
+    const btn = document.querySelector('.menu-btn');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('active');
+    }
+});
 
 // ============================================
 // PRODUCT LOADING
@@ -59,33 +68,35 @@ function logout() {
 
 async function loadProducts() {
     console.log('Loading products from:', `${API_BASE_URL}/api/products/`);
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/products/`);
         console.log('Products response status:', response.status);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const products = await response.json();
         console.log('Products loaded:', products.length);
-        
+
         allProducts = products;
         populateCategories(products);
         renderProducts(products);
+        updateResultsCount(products.length);
     } catch (error) {
         console.error('Error loading products:', error);
         productsGrid.innerHTML = `
             <div class="error-state">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3>Failed to load products</h3>
-                <p>${error.message}</p>
+                <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                <h3 style="margin-bottom: 8px;">Failed to load products</h3>
+                <p style="color: #666;">${error.message}</p>
                 <button onclick="loadProducts()">
                     <i class="fas fa-redo"></i> Retry
                 </button>
             </div>
         `;
+        updateResultsCount(0);
     }
 }
 
@@ -94,7 +105,7 @@ async function loadProducts() {
 // ============================================
 
 function populateCategories(products) {
-    const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
     categoryFilter.innerHTML = '<option value="">All Categories</option>';
     categories.forEach(cat => {
         categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
@@ -110,10 +121,11 @@ function renderProducts(products) {
         productsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <h3>No products found</h3>
-                <p>Try adjusting your search or filter criteria.</p>
+                <h3 style="margin-bottom: 8px;">No products found</h3>
+                <p style="color: #666;">Try adjusting your search or filter criteria.</p>
             </div>
         `;
+        updateResultsCount(0);
         return;
     }
 
@@ -123,12 +135,12 @@ function renderProducts(products) {
         const stockClass = product.stock <= 5 ? 'low' : (product.stock === 0 ? 'out' : '');
         const stockText = product.stock === 0 ? 'Out of Stock' : `${product.stock} left`;
         const isWishlisted = wishlist.includes(product.id);
-        
+
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="product-image">
                     ${hasImage 
-                        ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-image placeholder-icon\\'></i>';">`
+                        ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-image placeholder-icon\'></i>';">`
                         : `<i class="fas fa-image placeholder-icon"></i>`
                     }
                     ${product.stock <= 5 && product.stock > 0 ? '<span class="product-badge">Low Stock</span>' : ''}
@@ -156,16 +168,27 @@ function renderProducts(products) {
             </div>
         `;
     }).join('');
+
+    updateResultsCount(products.length);
 }
 
 // ============================================
-// FILTERING
+// FILTERING & SEARCH
 // ============================================
+
+function handleSearch() {
+    const query = searchInput.value.trim();
+    if (query) {
+        window.location.href = 'products.html?search=' + encodeURIComponent(query);
+    } else {
+        filterProducts();
+    }
+}
 
 function filterProducts() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const category = categoryFilter.value;
-    
+
     const filtered = allProducts.filter(product => {
         const matchesSearch = !searchTerm || 
             product.name.toLowerCase().includes(searchTerm) ||
@@ -174,25 +197,12 @@ function filterProducts() {
         const matchesCategory = !category || product.category === category;
         return matchesSearch && matchesCategory;
     });
-    
+
     renderProducts(filtered);
 }
 
-// Event listeners
-searchInput.addEventListener('input', debounce(filterProducts, 300));
-categoryFilter.addEventListener('change', filterProducts);
-
-// Debounce helper for search
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+function updateResultsCount(count) {
+    resultsCount.textContent = count === 1 ? '1 product found' : `${count} products found`;
 }
 
 // ============================================
@@ -202,7 +212,7 @@ function debounce(func, wait) {
 function addToCart(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product || product.stock === 0) return;
-    
+
     const existingItem = cart.find(item => item.id === productId);
     if (existingItem) {
         if (existingItem.quantity < product.stock) {
@@ -222,14 +232,14 @@ function addToCart(productId) {
         });
         showToast('Item added to cart!', 'success');
     }
-    
+
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
 }
 
 function updateCartCount() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = `(${totalItems})`;
+    cartCount.textContent = totalItems;
 }
 
 // ============================================
@@ -240,7 +250,7 @@ function toggleWishlist(productId) {
     const index = wishlist.indexOf(productId);
     const btn = document.querySelector(`.product-card[data-id="${productId}"] .wishlist-btn`);
     const icon = btn.querySelector('i');
-    
+
     if (index > -1) {
         wishlist.splice(index, 1);
         btn.classList.remove('active');
@@ -254,7 +264,7 @@ function toggleWishlist(productId) {
         icon.classList.add('fas');
         showToast('Added to wishlist', 'success');
     }
-    
+
     localStorage.setItem('wishlist', JSON.stringify(wishlist));
 }
 
@@ -265,7 +275,7 @@ function toggleWishlist(productId) {
 function showToast(message, type = 'success') {
     toastMessage.textContent = message;
     toast.className = `toast ${type} show`;
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
