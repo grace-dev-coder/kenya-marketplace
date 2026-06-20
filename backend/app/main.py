@@ -1,10 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from app.routers import auth, products, orders, payments, vendors, admin, reviews, cart
 from app.database import engine, Base
 
 # Create tables
@@ -12,7 +11,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Kenya Marketplace API")
 
-# CORS for frontend
+# CORS for frontend - MUST be before routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,15 +20,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API routes
-app.include_router(auth.router)
-app.include_router(products.router)
-app.include_router(orders.router)
-app.include_router(payments.router)
-app.include_router(vendors.router)
-app.include_router(admin.router)
-app.include_router(reviews.router)
-app.include_router(cart.router)
+# Import routers with error handling
+try:
+    from app.routers import auth, products, orders, payments, vendors, admin, reviews, cart
+    app.include_router(auth.router)
+    app.include_router(products.router)
+    app.include_router(orders.router)
+    app.include_router(payments.router)
+    app.include_router(vendors.router)
+    app.include_router(admin.router)
+    app.include_router(reviews.router)
+    app.include_router(cart.router)
+    print("All routers loaded successfully")
+except Exception as e:
+    print(f"Router import error: {e}")
+    import traceback
+    traceback.print_exc()
 
 # ─── STATIC FILES SERVING ─────────────────────────────────────────
 
