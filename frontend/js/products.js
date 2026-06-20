@@ -6,22 +6,32 @@ function getToken() {
     return localStorage.getItem('access_token') || localStorage.getItem('token');
 }
 
-function getUser() {
-    try {
-        return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-        return null;
-    }
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#f44336' : '#4caf50';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
 }
 
 async function loadProducts() {
     try {
+        console.log('Loading products from:', `${API_BASE_URL}/api/products/`);
         const response = await fetch(`${API_BASE_URL}/api/products/`);
+        
+        console.log('Products response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load products: ${response.status}`);
+        }
+        
         const products = await response.json();
+        console.log('Products loaded:', products.length);
         renderProducts(products);
     } catch (error) {
         console.error('Error loading products:', error);
-        document.getElementById('productsGrid').innerHTML = '<p style="text-align:center; padding:40px; color:#e74c3c;">Failed to load products</p>';
+        document.getElementById('productsGrid').innerHTML = `<p style="text-align:center; padding:40px; color:#e74c3c;">Failed to load products: ${error.message}</p>`;
     }
 }
 
@@ -45,15 +55,15 @@ function renderProducts(products) {
             <div style="padding: 16px;">
                 <h3 style="margin: 0 0 8px; font-size: 1.1em;">${product.name}</h3>
                 <p style="color: #666; font-size: 0.9em; margin: 0 0 12px; line-height: 1.4;">${product.description || ''}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 1.2em; font-weight: 700; color: #1976d2;">KES ${product.price ? product.price.toLocaleString() : '0'}</span>
                     <span style="font-size: 0.85em; color: #666;">${product.stock || 0} left</span>
                 </div>
-                <div style="margin-top: 12px; display: flex; gap: 8px;">
-                    <button onclick="addToCart(${product.id})" class="btn btn-primary" style="flex: 1; padding: 10px;">
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="addToCart(${product.id})" class="btn btn-primary" style="flex: 1; padding: 10px; cursor: pointer;">
                         <i class="fas fa-cart-plus"></i> Add to Cart
                     </button>
-                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline" style="padding: 10px;">
+                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline" style="padding: 10px; text-decoration: none;">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -83,6 +93,8 @@ async function addToCart(productId) {
             })
         });
 
+        console.log('Add to cart response status:', response.status);
+
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
             window.location.href = 'login.html';
@@ -90,15 +102,15 @@ async function addToCart(productId) {
         }
 
         if (response.ok) {
-            alert('Added to cart!');
+            showToast('Added to cart!');
             updateCartCount();
         } else {
             const error = await response.json();
-            alert(error.detail || 'Failed to add to cart');
+            showToast(error.detail || 'Failed to add to cart', 'error');
         }
     } catch (error) {
         console.error('Add to cart error:', error);
-        alert('Network error. Please try again.');
+        showToast('Network error. Please try again.', 'error');
     }
 }
 
@@ -123,7 +135,6 @@ function filterProducts() {
     const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const category = document.getElementById('categoryFilter')?.value || '';
     
-    // Reload and filter
     fetch(`${API_BASE_URL}/api/products/`)
         .then(res => res.json())
         .then(products => {
