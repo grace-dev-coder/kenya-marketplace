@@ -186,19 +186,94 @@ function handleSearch() {
 }
 
 function filterProducts() {
+    applyFilters();
+}
+
+// ============================================
+// ADVANCED FILTERS PANEL
+// ============================================
+
+function toggleFilters() {
+    const panel = document.getElementById('filters-panel');
+    const btn = document.getElementById('btn-filters');
+    panel.classList.toggle('active');
+    btn.classList.toggle('active');
+}
+
+function applyFilters() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const category = categoryFilter.value;
+    const priceMin = parseFloat(document.getElementById('price-min').value) || 0;
+    const priceMax = parseFloat(document.getElementById('price-max').value) || Infinity;
+    const stockIn = document.getElementById('stock-in').checked;
+    const stockLow = document.getElementById('stock-low').checked;
+    const stockOut = document.getElementById('stock-out').checked;
+    const sortBy = document.getElementById('sort-by').value;
 
-    const filtered = allProducts.filter(product => {
+    let filtered = allProducts.filter(product => {
+        // Search match
         const matchesSearch = !searchTerm || 
             product.name.toLowerCase().includes(searchTerm) ||
             (product.description && product.description.toLowerCase().includes(searchTerm)) ||
             (product.category && product.category.toLowerCase().includes(searchTerm));
+
+        // Category match
         const matchesCategory = !category || product.category === category;
-        return matchesSearch && matchesCategory;
+
+        // Price match
+        const matchesPrice = product.price >= priceMin && product.price <= priceMax;
+
+        // Stock match
+        let matchesStock = false;
+        if (stockIn && product.stock > 5) matchesStock = true;
+        if (stockLow && product.stock > 0 && product.stock <= 5) matchesStock = true;
+        if (stockOut && product.stock === 0) matchesStock = true;
+
+        return matchesSearch && matchesCategory && matchesPrice && matchesStock;
     });
 
+    // Sorting
+    switch(sortBy) {
+        case 'price-asc':
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+        case 'price-desc':
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+        case 'name-asc':
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            filtered.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        case 'stock-desc':
+            filtered.sort((a, b) => b.stock - a.stock);
+            break;
+    }
+
     renderProducts(filtered);
+
+    // Close panel on mobile
+    if (window.innerWidth <= 768) {
+        document.getElementById('filters-panel').classList.remove('active');
+        document.getElementById('btn-filters').classList.remove('active');
+    }
+}
+
+function clearFilters() {
+    document.getElementById('price-min').value = '';
+    document.getElementById('price-max').value = '';
+    document.getElementById('stock-in').checked = true;
+    document.getElementById('stock-low').checked = false;
+    document.getElementById('stock-out').checked = false;
+    document.getElementById('sort-by').value = 'default';
+    categoryFilter.value = '';
+    searchInput.value = '';
+
+    renderProducts(allProducts);
+    updateResultsCount(allProducts.length);
+
+    showToast('Filters cleared', 'success');
 }
 
 function updateResultsCount(count) {

@@ -212,6 +212,172 @@
             font-size: 14px;
         }
 
+        /* ===== FILTERS BUTTON ===== */
+        .btn-filters {
+            background: #FF9900;
+            color: #232F3E;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-filters:hover {
+            background: #e68a00;
+        }
+
+        .btn-filters.active {
+            background: #232F3E;
+            color: #FF9900;
+        }
+
+        /* ===== FILTERS PANEL ===== */
+        .filters-panel {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            padding: 0 20px;
+            display: none;
+        }
+
+        .filters-panel.active {
+            display: block;
+        }
+
+        .filters-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #232F3E;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-inputs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .price-inputs input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .price-inputs input:focus {
+            border-color: #FF9900;
+        }
+
+        .price-inputs span {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 400;
+            text-transform: none;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #FF9900;
+            cursor: pointer;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            color: #232F3E;
+            cursor: pointer;
+        }
+
+        .filter-group select:focus {
+            border-color: #FF9900;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-apply {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-apply:hover {
+            background: #219a52;
+        }
+
+        .btn-clear {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-clear:hover {
+            background: #e5e5e5;
+        }
+
         /* ============================================
            PRODUCTS GRID
            ============================================ */
@@ -581,10 +747,54 @@
 
     <!-- Filter Bar -->
     <div class="filter-section">
+        <button class="btn-filters" id="btn-filters" onclick="toggleFilters()">
+            <i class="fas fa-sliders-h"></i> Filters
+        </button>
         <select class="category-filter" id="category-filter">
             <option value="">All Categories</option>
         </select>
         <span class="results-count" id="results-count">Loading...</span>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div class="filters-panel" id="filters-panel">
+        <div class="filters-content">
+            <div class="filter-group">
+                <label>Price Range</label>
+                <div class="price-inputs">
+                    <input type="number" id="price-min" placeholder="Min KES" min="0">
+                    <span>—</span>
+                    <input type="number" id="price-max" placeholder="Max KES" min="0">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Stock Status</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="stock-in" checked> In Stock</label>
+                    <label><input type="checkbox" id="stock-low"> Low Stock</label>
+                    <label><input type="checkbox" id="stock-out"> Out of Stock</label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="sort-by">
+                    <option value="default">Default</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Name: A-Z</option>
+                    <option value="name-desc">Name: Z-A</option>
+                    <option value="stock-desc">Stock: Most Available</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-apply" onclick="applyFilters()">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+                <button class="btn-clear" onclick="clearFilters()">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Products Section -->
