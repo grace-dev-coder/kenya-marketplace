@@ -7,51 +7,71 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="js/main.js?v=1003"></script>
-    <script src="js/auth.js?v=1003"></script>
-    <script src="js/cart.js?v=1003"></script>
+    <script src="js/main.js?v=1005"></script>
+    <script src="js/auth.js?v=1005"></script>
+    <script src="js/cart.js?v=1005"></script>
 </head>
 <body>
     <header class="main-header">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
             <a href="index.html" class="logo">
-                <img src="assets/logo.png" alt="Kenya Marketplace">
+                <img src="assets/logo.png" alt="Kenya Marketplace" style="height: 40px;">
             </a>
-            <nav class="main-nav">
+            <nav class="main-nav" style="display: flex; gap: 20px; align-items: center;">
                 <a href="index.html">Home</a>
                 <a href="products.html">Products</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart (<span id="cartCount">0</span>)</a>
+                <a href="cart.html" style="font-weight: 600;">
+                    <i class="fas fa-shopping-cart"></i> 
+                    Cart (<span id="cartCount">0</span>)
+                </a>
                 <a href="orders.html">Orders</a>
+                <div id="authButtons" style="display: flex; gap: 10px;">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div id="userMenu" style="display: none; align-items: center; gap: 10px;">
+                    <span id="userName">User</span>
+                    <a href="#" onclick="logout()" class="btn btn-outline">Logout</a>
+                </div>
             </nav>
         </div>
     </header>
 
-    <main class="container" style="padding: 40px 20px;">
+    <main class="container" style="padding: 40px 20px; max-width: 900px; margin: 0 auto;">
         <h1><i class="fas fa-shopping-cart"></i> Your Cart</h1>
         
         <div id="cartItems" style="margin-top: 30px;">
-            <p>Loading cart...</p>
+            <p style="text-align: center; padding: 40px;">Loading cart...</p>
         </div>
         
-        <div id="cartSummary" style="margin-top: 30px; display: none;">
+        <div id="cartSummary" style="margin-top: 30px; display: none; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             <div style="border-top: 2px solid #eee; padding-top: 20px; max-width: 400px; margin-left: auto;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span>Subtotal</span>
-                    <span id="cartSubtotal">KES 0</span>
+                    <span id="cartSubtotal" style="font-weight: 600;">KES 0</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span>Shipping</span>
-                    <span>KES 200</span>
+                    <span style="font-weight: 600;">KES 200</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 1.2em; font-weight: bold; border-top: 1px solid #eee; padding-top: 10px;">
                     <span>Total</span>
-                    <span id="cartTotal">KES 0</span>
+                    <span id="cartTotal" style="color: #1976d2;">KES 0</span>
                 </div>
-                <a href="checkout.html" class="btn btn-primary" style="display: block; text-align: center; margin-top: 20px; padding: 16px;">
+                <a href="checkout.html" class="btn btn-primary" style="display: block; text-align: center; margin-top: 20px; padding: 16px; text-decoration: none;">
                     <i class="fas fa-credit-card"></i> Proceed to Checkout
                 </a>
             </div>
         </div>
     </main>
+
+    <footer style="background: #1a1a2e; color: #fff; padding: 40px 20px; margin-top: 60px;">
+        <div class="container" style="text-align: center;">
+            <p>&copy; 2024 Kenya Marketplace. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display: none; position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; border-radius: 8px; color: #fff; font-weight: 500; z-index: 1000;"></div>
 </body>
 </html>
