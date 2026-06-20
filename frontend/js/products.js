@@ -1,161 +1,272 @@
-if (typeof API_BASE_URL === 'undefined') {
-    var API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+// ============================================
+// Kenya Marketplace - Products Page JavaScript
+// ============================================
+
+const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+
+// State
+let allProducts = [];
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+// DOM Elements
+const productsGrid = document.getElementById('products-grid');
+const searchInput = document.getElementById('search-input');
+const categoryFilter = document.getElementById('category-filter');
+const cartCount = document.getElementById('cart-count');
+const navUser = document.getElementById('nav-user');
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toast-message');
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('API Base URL:', API_BASE_URL);
+    loadProducts();
+    updateCartCount();
+    checkAuth();
+});
+
+// ============================================
+// AUTHENTICATION
+// ============================================
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token && user.name) {
+        navUser.innerHTML = `
+            <span><i class="fas fa-user-circle"></i> ${user.name}</span>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        `;
+    }
 }
 
-function getToken() {
-    return localStorage.getItem('access_token') || localStorage.getItem('token');
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
 }
 
-function showToast(message, type) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.style.background = type === 'error' ? '#f44336' : '#4caf50';
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
-}
+// ============================================
+// PRODUCT LOADING
+// ============================================
 
 async function loadProducts() {
+    console.log('Loading products from:', `${API_BASE_URL}/api/products/`);
+    
     try {
-        console.log('Loading products from:', `${API_BASE_URL}/api/products/`);
         const response = await fetch(`${API_BASE_URL}/api/products/`);
-        
         console.log('Products response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`Failed to load products: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const products = await response.json();
         console.log('Products loaded:', products.length);
+        
+        allProducts = products;
+        populateCategories(products);
         renderProducts(products);
     } catch (error) {
         console.error('Error loading products:', error);
-        document.getElementById('productsGrid').innerHTML = `<p style="text-align:center; padding:40px; color:#e74c3c;">Failed to load products: ${error.message}</p>`;
+        productsGrid.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h3>Failed to load products</h3>
+                <p>${error.message}</p>
+                <button onclick="loadProducts()">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
     }
 }
+
+// ============================================
+// CATEGORY FILTER
+// ============================================
+
+function populateCategories(products) {
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(cat => {
+        categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
+}
+
+// ============================================
+// PRODUCT RENDERING
+// ============================================
 
 function renderProducts(products) {
-    const container = document.getElementById('productsGrid');
-    if (!container) return;
-
-    if (!products || products.length === 0) {
-        container.innerHTML = '<p style="text-align:center; padding:40px;">No products available</p>';
+    if (products.length === 0) {
+        productsGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+            </div>
+        `;
         return;
     }
 
-    container.innerHTML = products.map(product => `
-        <div class="product-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s;">
-            <div style="position: relative; padding-top: 75%; overflow: hidden;">
-                <img src="${product.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}" 
-                     alt="${product.name}" 
-                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
-                     onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
-            </div>
-            <div style="padding: 16px;">
-                <h3 style="margin: 0 0 8px; font-size: 1.1em;">${product.name}</h3>
-                <p style="color: #666; font-size: 0.9em; margin: 0 0 12px; line-height: 1.4;">${product.description || ''}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <span style="font-size: 1.2em; font-weight: 700; color: #1976d2;">KES ${product.price ? product.price.toLocaleString() : '0'}</span>
-                    <span style="font-size: 0.85em; color: #666;">${product.stock || 0} left</span>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button onclick="addToCart(${product.id})" class="btn btn-primary" style="flex: 1; padding: 10px; cursor: pointer;">
-                        <i class="fas fa-cart-plus"></i> Add to Cart
+    productsGrid.innerHTML = products.map(product => {
+        const imageUrl = product.image_url || product.image || '';
+        const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';
+        const stockClass = product.stock <= 5 ? 'low' : (product.stock === 0 ? 'out' : '');
+        const stockText = product.stock === 0 ? 'Out of Stock' : `${product.stock} left`;
+        const isWishlisted = wishlist.includes(product.id);
+        
+        return `
+            <div class="product-card" data-id="${product.id}">
+                <div class="product-image">
+                    ${hasImage 
+                        ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-image placeholder-icon\\'></i>';">`
+                        : `<i class="fas fa-image placeholder-icon"></i>`
+                    }
+                    ${product.stock <= 5 && product.stock > 0 ? '<span class="product-badge">Low Stock</span>' : ''}
+                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" onclick="toggleWishlist(${product.id})" title="${isWishlisted ? 'Remove from' : 'Add to'} wishlist">
+                        <i class="${isWishlisted ? 'fas' : 'far'} fa-heart"></i>
                     </button>
-                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline" style="padding: 10px; text-decoration: none;">
-                        <i class="fas fa-eye"></i>
-                    </a>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">${product.category || 'General'}</div>
+                    <h3 class="product-name">${product.name}</h3>
+                    <p class="product-desc">${product.description || 'No description available'}</p>
+                    <div class="product-meta">
+                        <span class="product-price">KES ${Number(product.price).toLocaleString()}</span>
+                        <span class="product-stock ${stockClass}">${stockText}</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-add-cart" onclick="addToCart(${product.id})" ${product.stock === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <a href="product-detail.html?id=${product.id}" class="btn-view" title="View details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
-async function addToCart(productId) {
-    const token = getToken();
-    if (!token) {
-        alert('Please log in first');
-        window.location.href = 'login.html';
-        return;
-    }
+// ============================================
+// FILTERING
+// ============================================
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/cart/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                product_id: productId,
-                quantity: 1
-            })
-        });
+function filterProducts() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const category = categoryFilter.value;
+    
+    const filtered = allProducts.filter(product => {
+        const matchesSearch = !searchTerm || 
+            product.name.toLowerCase().includes(searchTerm) ||
+            (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+            (product.category && product.category.toLowerCase().includes(searchTerm));
+        const matchesCategory = !category || product.category === category;
+        return matchesSearch && matchesCategory;
+    });
+    
+    renderProducts(filtered);
+}
 
-        console.log('Add to cart response status:', response.status);
+// Event listeners
+searchInput.addEventListener('input', debounce(filterProducts, 300));
+categoryFilter.addEventListener('change', filterProducts);
 
-        if (response.status === 401) {
-            alert('Session expired. Please log in again.');
-            window.location.href = 'login.html';
+// Debounce helper for search
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// ============================================
+// CART FUNCTIONS
+// ============================================
+
+function addToCart(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product || product.stock === 0) return;
+    
+    const existingItem = cart.find(item => item.id === productId);
+    if (existingItem) {
+        if (existingItem.quantity < product.stock) {
+            existingItem.quantity += 1;
+            showToast('Quantity updated in cart!', 'success');
+        } else {
+            showToast('Maximum stock reached!', 'error');
             return;
         }
-
-        if (response.ok) {
-            showToast('Added to cart!');
-            updateCartCount();
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Failed to add to cart', 'error');
-        }
-    } catch (error) {
-        console.error('Add to cart error:', error);
-        showToast('Network error. Please try again.', 'error');
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image_url || product.image || '',
+            quantity: 1
+        });
+        showToast('Item added to cart!', 'success');
     }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
 }
 
 function updateCartCount() {
-    const token = getToken();
-    if (!token) return;
-
-    fetch(`${API_BASE_URL}/api/cart/`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-        const countEl = document.getElementById('cartCount');
-        if (countEl) {
-            countEl.textContent = data.count || 0;
-        }
-    })
-    .catch(err => console.error('Cart count error:', err));
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = `(${totalItems})`;
 }
 
-function filterProducts() {
-    const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
-    const category = document.getElementById('categoryFilter')?.value || '';
+// ============================================
+// WISHLIST FUNCTIONS
+// ============================================
+
+function toggleWishlist(productId) {
+    const index = wishlist.indexOf(productId);
+    const btn = document.querySelector(`.product-card[data-id="${productId}"] .wishlist-btn`);
+    const icon = btn.querySelector('i');
     
-    fetch(`${API_BASE_URL}/api/products/`)
-        .then(res => res.json())
-        .then(products => {
-            let filtered = products;
-            if (search) {
-                filtered = filtered.filter(p => 
-                    (p.name && p.name.toLowerCase().includes(search)) ||
-                    (p.description && p.description.toLowerCase().includes(search))
-                );
-            }
-            if (category) {
-                filtered = filtered.filter(p => p.category === category);
-            }
-            renderProducts(filtered);
-        })
-        .catch(err => console.error('Filter error:', err));
+    if (index > -1) {
+        wishlist.splice(index, 1);
+        btn.classList.remove('active');
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        showToast('Removed from wishlist', 'success');
+    } else {
+        wishlist.push(productId);
+        btn.classList.add('active');
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        showToast('Added to wishlist', 'success');
+    }
+    
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('productsGrid')) {
-        loadProducts();
-        updateCartCount();
-    }
-});
+// ============================================
+// TOAST NOTIFICATIONS
+// ============================================
+
+function showToast(message, type = 'success') {
+    toastMessage.textContent = message;
+    toast.className = `toast ${type} show`;
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
