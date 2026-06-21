@@ -3,235 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Detail - Kenya Marketplace</title>
+    <title>Product Details - Kenya Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/main.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #232F3E; line-height: 1.6; }
+
+        /* ===== HEADER (matches index.html exactly) ===== */
+        .main-header {
+            background: #232F3E; color: white; padding: 10px 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            background: #FF9900; color: #232F3E; padding: 8px 15px;
+            font-weight: 900; font-size: 12px; border-radius: 3px;
+            white-space: nowrap; flex-shrink: 0; line-height: 1.3;
+            text-align: center; text-decoration: none; display: block;
+        }
+        .search-bar { display: flex; flex: 1; max-width: 500px; min-width: 100px; }
+        .search-bar input { flex: 1; padding: 10px; border: none; border-radius: 4px 0 0 4px; font-size: 14px; outline: none; }
+        .search-bar button { padding: 10px 15px; background: #FF9900; border: none; color: #232F3E; border-radius: 0 4px 4px 0; cursor: pointer; font-size: 16px; }
+        .search-bar button:hover { background: #e68a00; }
+        .menu-btn { background: #FF9900; border: none; color: #232F3E; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 18px; flex-shrink: 0; }
+        .menu-btn:hover { background: #e68a00; }
+        .dropdown-menu { display: none; position: absolute; right: 15px; top: 55px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); min-width: 200px; z-index: 1001; overflow: hidden; }
+        .dropdown-menu.active { display: block; }
+        .dropdown-menu a { display: block; padding: 12px 20px; color: #232F3E; text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; transition: background 0.2s; }
+        .dropdown-menu a:hover { background: #f5f5f5; }
+        .dropdown-menu .btn-register { background: #27ae60; color: white !important; font-weight: 700; text-align: center; margin: 10px; border-radius: 4px; border: none; }
+        .dropdown-menu .btn-login { background: #5dade2; color: white !important; font-weight: 600; text-align: center; margin: 10px; border-radius: 4px; border: none; }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            max-width: 1200px; margin: 15px auto; padding: 0 20px;
+            font-size: 14px; color: #888;
+        }
+        .breadcrumb a { color: #FF9900; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb i { margin: 0 8px; color: #ccc; }
+
+        /* ===== PRODUCT DETAIL ===== */
+        .product-detail-container {
+            max-width: 1200px; margin: 0 auto 40px; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+        }
+
+        .product-gallery {
+            background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #eee; overflow: hidden;
+        }
+        .main-image {
+            width: 100%; height: 450px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .main-image img { width: 100%; height: 100%; object-fit: cover; }
+        .main-image .placeholder-icon { font-size: 5rem; color: #adb5bd; }
+        .image-badge {
+            position: absolute; top: 15px; left: 15px;
+            background: #FF9900; color: #232F3E; padding: 6px 14px;
+            border-radius: 3px; font-size: 12px; font-weight: 700;
+        }
+
+        .product-info-detail { padding: 0; }
+        .product-category-tag {
+            display: inline-block; background: #FF9900; color: #232F3E;
+            padding: 4px 12px; border-radius: 3px; font-size: 12px;
+            font-weight: 700; text-transform: uppercase; margin-bottom: 12px;
+        }
+        .product-title {
+            font-size: 1.8rem; font-weight: 800; color: #232F3E;
+            margin-bottom: 10px; line-height: 1.3;
+        }
+        .product-rating {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
+            color: #FF9900; font-size: 14px;
+        }
+        .product-rating span { color: #888; }
+        .product-price-detail {
+            font-size: 2rem; font-weight: 800; color: #232F3E;
+            margin-bottom: 20px;
+        }
+        .product-price-detail .original {
+            font-size: 1.2rem; color: #888; text-decoration: line-through;
+            font-weight: 400; margin-left: 10px;
+        }
+        .product-description {
+            font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 25px;
+            padding-bottom: 20px; border-bottom: 1px solid #eee;
+        }
+
+        .product-meta-detail {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+            margin-bottom: 25px;
+        }
+        .meta-item {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 14px; color: #555;
+        }
+        .meta-item i { color: #FF9900; font-size: 16px; width: 20px; }
+        .meta-item .label { font-weight: 600; color: #232F3E; }
+
+        .stock-status {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 4px; font-size: 14px;
+            font-weight: 600; margin-bottom: 20px;
+        }
+        .stock-status.in { background: #d4edda; color: #155724; }
+        .stock-status.low { background: #fff3cd; color: #856404; }
+        .stock-status.out { background: #f8d7da; color: #721c24; }
+
+        .quantity-selector {
+            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+        }
+        .quantity-selector label { font-weight: 600; font-size: 14px; }
+        .qty-control-detail {
+            display: flex; align-items: center; border: 1px solid #ddd;
+            border-radius: 4px; overflow: hidden;
+        }
+        .qty-control-detail button {
+            background: #f5f5f5; border: none; width: 40px; height: 40px;
+            cursor: pointer; font-size: 16px; color: #232F3E; transition: background 0.2s;
+        }
+        .qty-control-detail button:hover { background: #e5e5e5; }
+        .qty-control-detail button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .qty-control-detail input {
+            width: 60px; text-align: center; border: none; border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd; font-size: 16px; font-weight: 600; height: 40px;
+            outline: none;
+        }
+
+        .action-buttons {
+            display: flex; gap: 12px; flex-wrap: wrap;
+        }
+        .btn-add-cart-detail {
+            flex: 1; min-width: 200px; background: #FF9900; color: #232F3E;
+            border: none; padding: 16px 30px; border-radius: 4px; cursor: pointer;
+            font-size: 1rem; font-weight: 700; display: flex; align-items: center;
+            justify-content: center; gap: 10px; transition: background 0.2s;
+        }
+        .btn-add-cart-detail:hover { background: #e68a00; }
+        .btn-add-cart-detail:disabled { background: #ccc; color: #666; cursor: not-allowed; }
+        .btn-wishlist-detail {
+            width: 56px; height: 56px; border: 2px solid #ddd; background: white;
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #888; font-size: 20px; transition: all 0.2s;
+        }
+        .btn-wishlist-detail:hover { border-color: #e74c3c; color: #e74c3c; }
+        .btn-wishlist-detail.active { border-color: #e74c3c; color: #e74c3c; background: #fdeaea; }
+
+        /* ===== RELATED PRODUCTS ===== */
+        .related-section {
+            max-width: 1200px; margin: 0 auto 40px; padding: 0 20px;
+        }
+        .related-section h2 {
+            font-size: 1.4rem; color: #232F3E; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .related-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+        }
+        .related-card {
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; text-decoration: none;
+            color: inherit; display: block;
+        }
+        .related-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .related-image { width: 100%; height: 160px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; }
+        .related-image img { width: 100%; height: 100%; object-fit: cover; }
+        .related-image .placeholder-icon { font-size: 2rem; color: #adb5bd; }
+        .related-info { padding: 12px; }
+        .related-name { font-size: 14px; font-weight: 700; color: #232F3E; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .related-price { font-size: 16px; font-weight: 800; color: #FF9900; }
+
+        /* ===== LOADING / ERROR ===== */
+        .loading-detail, .error-detail, .not-found {
+            text-align: center; padding: 80px 20px; grid-column: 1 / -1;
+        }
+        .loading-detail i { font-size: 3rem; color: #FF9900; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-detail { color: #e74c3c; }
+        .error-detail button { margin-top: 15px; padding: 10px 20px; background: #FF9900; color: #232F3E; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; }
+        .not-found i { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
+
+        /* ===== TOAST ===== */
+        .toast { position: fixed; bottom: 25px; right: 25px; background: #232F3E; color: white; padding: 12px 18px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 2000; font-size: 14px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid #27ae60; }
+        .toast.error { border-left: 4px solid #e74c3c; }
+
+        /* ===== FOOTER ===== */
+        footer { background: #232F3E; color: white; text-align: center; padding: 20px; margin-top: 40px; font-size: 0.9rem; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .product-detail-container { grid-template-columns: 1fr; gap: 25px; }
+            .main-image { height: 350px; }
+        }
+        @media (max-width: 600px) {
+            .product-title { font-size: 1.4rem; }
+            .product-price-detail { font-size: 1.6rem; }
+            .main-image { height: 280px; }
+            .action-buttons { flex-direction: column; }
+            .btn-add-cart-detail { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .main-header { padding: 8px 10px; }
+            .logo { font-size: 10px; padding: 6px 10px; }
+            .product-meta-detail { grid-template-columns: 1fr; }
+        }
+    </style>
+<base target="_blank">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <img src="../assets/logo.png" alt="Kenya Marketplace">
-            </a>
-            <div class="nav-links">
-                <a href="cart.html" class="nav-link"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span></a>
-                <div class="auth-links" id="authLinks">
-                    <a href="login.html" class="btn btn-outline">Login</a>
-                </div>
-                <div class="user-menu" id="userMenu" style="display:none;">
-                    <span id="userName"></span>
-                    <a href="#" onclick="logout()">Logout</a>
-                </div>
-            </div>
+    <header class="main-header">
+        <a href="index.html" class="logo">KENYA<br>MARKETPLACE</a>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search products...">
+            <button id="search-btn"><i class="fas fa-search"></i></button>
         </div>
-    </nav>
+        <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="dropdown-menu" id="dropdownMenu">
+            <a href="register.html" class="btn-register">Register</a>
+            <a href="login.html" class="btn-login">Login</a>
+            <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart (<span id="nav-cart-count">0</span>)</a>
+            <a href="products.html"><i class="fas fa-box-open"></i> Browse Products</a>
+            <a href="orders.html"><i class="fas fa-clipboard-list"></i> My Orders</a>
+            <a href="wishlist.html"><i class="fas fa-heart"></i> Wishlist</a>
+        </div>
+    </header>
 
-    <main class="product-detail-page">
-        <div class="product-detail-container" id="productDetail"></div>
+    <div class="breadcrumb" id="breadcrumb">
+        <a href="index.html">Home</a> <i class="fas fa-chevron-right"></i>
+        <a href="products.html">Products</a> <i class="fas fa-chevron-right"></i>
+        <span id="breadcrumb-name">Loading...</span>
+    </div>
 
-        <section class="reviews-section">
-            <h2>Customer Reviews</h2>
-            <div id="reviewsList"></div>
-            <div class="add-review" id="addReviewSection" style="display:none;">
-                <h3>Write a Review</h3>
-                <form id="reviewForm" onsubmit="submitReview(event)">
-                    <div class="rating-input">
-                        <label>Rating:</label>
-                        <select id="rating">
-                            <option value="5">5 Stars</option>
-                            <option value="4">4 Stars</option>
-                            <option value="3">3 Stars</option>
-                            <option value="2">2 Stars</option>
-                            <option value="1">1 Star</option>
-                        </select>
-                    </div>
-                    <textarea id="comment" placeholder="Share your experience..." rows="4"></textarea>
-                    <button type="submit" class="btn btn-primary">Submit Review</button>
-                </form>
-            </div>
-        </section>
-    </main>
+    <div class="product-detail-container" id="product-detail">
+        <div class="loading-detail">
+            <i class="fas fa-spinner"></i>
+            <p style="margin-top: 15px; color: #666;">Loading product details...</p>
+        </div>
+    </div>
 
-    <script>
-        const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+    <div class="related-section" id="related-section" style="display: none;">
+        <h2><i class="fas fa-th-large"></i> Related Products</h2>
+        <div class="related-grid" id="related-grid"></div>
+    </div>
 
-        function getToken() {
-            return localStorage.getItem('access_token') || localStorage.getItem('token');
-        }
+    <footer><p>&copy; 2026 Kenya Marketplace. All rights reserved.</p></footer>
 
-        function getUser() {
-            try {
-                return JSON.parse(localStorage.getItem('user') || 'null');
-            } catch {
-                return null;
-            }
-        }
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toast-message">Item added to cart!</span></div>
 
-        function updateAuthUI() {
-            const token = getToken();
-            const user = getUser();
-            const userMenu = document.getElementById('userMenu');
-            const userName = document.getElementById('userName');
-            const authLinks = document.getElementById('authLinks');
-            
-            if (token && user) {
-                if (userMenu) userMenu.style.display = 'flex';
-                if (userName) userName.textContent = user.full_name || user.email || 'User';
-                if (authLinks) authLinks.style.display = 'none';
-            } else {
-                if (userMenu) userMenu.style.display = 'none';
-                if (authLinks) authLinks.style.display = 'block';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        }
-
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.querySelectorAll('#cartCount').forEach(el => {
-                el.textContent = totalItems;
-            });
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-
-        async function loadProduct() {
-            if (!productId) {
-                document.getElementById('productDetail').innerHTML = '<p>Product not found.</p>';
-                return;
-            }
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
-                if (!response.ok) throw new Error('Product not found');
-                const product = await response.json();
-
-                document.getElementById('productDetail').innerHTML = `
-                    <div class="product-images">
-                        <img src="${product.image_url || 'https://via.placeholder.com/500?text=No+Image'}" alt="${product.name}">
-                    </div>
-                    <div class="product-info-detail">
-                        <h1>${product.name}</h1>
-                        <p class="price-large">KES ${product.price ? product.price.toLocaleString() : '0'}</p>
-                        <p class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                            ${product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
-                        </p>
-                        <p class="description">${product.description || 'No description available.'}</p>
-                        
-                        <div class="quantity-selector">
-                            <label>Quantity:</label>
-                            <input type="number" id="quantity" value="1" min="1" max="${product.stock || 1}">
-                        </div>
-                        
-                        <div class="product-actions">
-                            <button class="btn btn-primary btn-large" onclick="addToCart(${product.id})" ${product.stock === 0 ? 'disabled' : ''}>
-                                <i class="fas fa-shopping-cart"></i> Add to Cart
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error loading product:', error);
-                document.getElementById('productDetail').innerHTML = '<p>Failed to load product. Please try again.</p>';
-            }
-        }
-
-        async function loadReviews() {
-            if (!productId) return;
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/reviews/product/${productId}`);
-                if (!response.ok) throw new Error('Failed to load reviews');
-                const reviews = await response.json();
-                
-                const reviewsList = document.getElementById('reviewsList');
-                if (!reviews || reviews.length === 0) {
-                    reviewsList.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
-                } else {
-                    reviewsList.innerHTML = reviews.map(review => `
-                        <div class="review-card">
-                            <div class="review-header">
-                                <span class="reviewer">${review.user_name || 'Anonymous'}</span>
-                                <span class="review-date">${review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}</span>
-                            </div>
-                            <div class="rating">${'★'.repeat(review.rating || 0)}${'☆'.repeat(5 - (review.rating || 0))}</div>
-                            <p>${review.comment || 'No comment'}</p>
-                        </div>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading reviews:', error);
-                document.getElementById('reviewsList').innerHTML = '<p>Failed to load reviews.</p>';
-            }
-        }
-
-        async function submitReview(e) {
-            e.preventDefault();
-            const token = getToken();
-            if (!token) {
-                alert('Please login to write a review');
-                return;
-            }
-
-            const data = {
-                product_id: parseInt(productId),
-                rating: parseInt(document.getElementById('rating').value),
-                comment: document.getElementById('comment').value
-            };
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/reviews/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    alert('Review submitted successfully!');
-                    loadReviews();
-                    document.getElementById('reviewForm').reset();
-                } else {
-                    const error = await response.json();
-                    alert(error.detail || 'Failed to submit review');
-                }
-            } catch (error) {
-                alert('Network error. Please try again.');
-            }
-        }
-
-        function addToCart(productId) {
-            const quantity = parseInt(document.getElementById('quantity')?.value || 1);
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cart.push({ id: productId, quantity: quantity });
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            alert('Added to cart!');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateAuthUI();
-            updateCartCount();
-            loadProduct();
-            loadReviews();
-            
-            const token = getToken();
-            if (token) {
-                document.getElementById('addReviewSection').style.display = 'block';
-            }
-        });
-    </script>
+    <script src="js/product-detail.js?v=2"></script>
 </body>
 </html>
