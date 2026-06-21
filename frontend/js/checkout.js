@@ -1,3 +1,4 @@
+// VERSION 2 - No cart API, direct POST to /api/orders/
 // ============================================
 // Kenya Marketplace - Checkout Page JavaScript
 // ============================================
