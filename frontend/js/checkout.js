@@ -1,9 +1,7 @@
-// VERSION 2 - No cart API, direct POST to /api/orders/
+// VERSION 3 - Use correct endpoint POST /api/orders/checkout with cart sync
 // ============================================
 // Kenya Marketplace - Checkout Page JavaScript
 // ============================================
-// NOTE: This backend has NO /api/cart/ endpoints.
-// We use POST /api/orders/ directly with items from localStorage.
 
 const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
 
@@ -54,9 +52,17 @@ async function apiFetch(url, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     try {
+        console.log(`API ${options.method || 'GET'} ${url}`);
         const response = await fetch(url, { ...options, headers });
+        console.log(`Response ${response.status} for ${url}`);
         if (response.status === 401) { console.error('Token expired/invalid'); handleAuthError(); return null; }
-        if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(errorData.detail || `HTTP ${response.status}`); }
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`API Error ${response.status}:`, errorText);
+            let errorData;
+            try { errorData = JSON.parse(errorText); } catch(e) { errorData = { detail: errorText }; }
+            throw new Error(errorData.detail || `HTTP ${response.status}`);
+        }
         return await response.json();
     } catch (error) { console.error('API Error:', error); throw error; }
 }
@@ -67,12 +73,53 @@ function handleAuthError() {
     setTimeout(() => { window.location.href = 'login.html?redirect=checkout.html'; }, 2000);
 }
 
-function loadCheckoutSummary() {
+async function loadCheckoutSummary() {
     const localCart = JSON.parse(localStorage.getItem('cart')) || [];
     if (localCart.length === 0) { showEmptyCart(); return; }
+
+    // Sync localStorage cart to API cart
+    console.log('Syncing cart to API...');
+    try {
+        await syncCartToAPI(localCart);
+    } catch (error) {
+        console.warn('Cart sync failed:', error.message);
+        showToast('Warning: Could not sync cart. Will try checkout anyway.', 'error');
+    }
+
     cart = localCart.map(item => ({ id: item.id, product_id: item.id, name: item.name, price: item.price, quantity: item.quantity, image_url: item.image || '', stock: item.stock || 999 }));
     renderCheckout();
     updateNavCartCount();
+}
+
+async function syncCartToAPI(localCart) {
+    // Step 1: Clear existing API cart
+    console.log('Clearing API cart...');
+    try {
+        await apiFetch(`${API_BASE_URL}/api/cart/`, { method: 'DELETE' });
+        console.log('API cart cleared');
+    } catch (e) { console.warn('Could not clear API cart:', e.message); }
+
+    // Step 2: Add each item from localStorage to API cart
+    for (const item of localCart) {
+        try {
+            const result = await apiFetch(`${API_BASE_URL}/api/cart/`, {
+                method: 'POST',
+                body: JSON.stringify({ product_id: item.id, quantity: item.quantity })
+            });
+            console.log(`Added item ${item.id} to API cart:`, result);
+        } catch (e) {
+            console.warn(`Failed to add item ${item.id} to API cart:`, e.message);
+            // Continue with other items
+        }
+    }
+
+    // Step 3: Verify API cart
+    try {
+        const apiCart = await apiFetch(`${API_BASE_URL}/api/cart/`);
+        console.log('API cart after sync:', apiCart);
+    } catch (e) {
+        console.warn('Could not verify API cart:', e.message);
+    }
 }
 
 function showEmptyCart() {
@@ -151,29 +198,41 @@ async function placeOrder() {
     const localCart = JSON.parse(localStorage.getItem('cart')) || [];
     if (localCart.length === 0) { showToast('Your cart is empty!', 'error'); showEmptyCart(); return; }
     const btn = document.querySelector('.btn-place-order');
-    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing order...';
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing cart...';
+
     try {
+        // Sync cart to API first (critical for checkout)
+        await syncCartToAPI(localCart);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing order...';
+
         const subtotal = localCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const shipping = subtotal > 5000 ? 0 : 300;
-        // Backend has NO /api/cart/ and NO /api/orders/checkout
-        // Use POST /api/orders/ directly with items in the body
+
+        // Use CORRECT endpoint: POST /api/orders/checkout
         const orderData = {
             items: localCart.map(item => ({
                 product_id: item.id,
                 quantity: item.quantity,
-                price: item.price,
-                name: item.name
+                price: item.price
             })),
             shipping_address: `${name}, ${phone}, ${address}, ${city}`,
             payment_method: paymentMethod,
-            total_amount: subtotal + shipping,
-            status: 'pending'
+            total_amount: subtotal + shipping
         };
-        console.log('Placing order via POST /api/orders/:', orderData);
-        const result = await apiFetch(`${API_BASE_URL}/api/orders/`, { method: 'POST', body: JSON.stringify(orderData) });
+
+        console.log('Placing order via POST /api/orders/checkout:', orderData);
+        const result = await apiFetch(`${API_BASE_URL}/api/orders/checkout`, {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
         if (!result) return;
+
         console.log('Order placed:', result);
         localStorage.removeItem('cart');
+
+        // Clear API cart
+        try { await apiFetch(`${API_BASE_URL}/api/cart/`, { method: 'DELETE' }); } catch (e) { console.log('Could not clear API cart'); }
+
         showToast('Order placed successfully!', 'success');
         setTimeout(() => { window.location.href = 'orders.html'; }, 2000);
     } catch (error) {
