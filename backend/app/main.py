@@ -20,22 +20,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Import routers with error handling
-try:
-    from app.routers import auth, products, orders, payments, vendors, admin, reviews, cart
-    app.include_router(auth.router)
-    app.include_router(products.router)
-    app.include_router(orders.router)
-    app.include_router(payments.router)
-    app.include_router(vendors.router)
-    app.include_router(admin.router)
-    app.include_router(reviews.router)
-    app.include_router(cart.router)
-    print("All routers loaded successfully")
-except Exception as e:
-    print(f"Router import error: {e}")
-    import traceback
-    traceback.print_exc()
+# Import routers
+from app.routers import auth, products, orders, payments, vendors, admin, reviews, cart
+app.include_router(auth.router)
+app.include_router(products.router)
+app.include_router(orders.router)
+app.include_router(payments.router)
+app.include_router(vendors.router)
+app.include_router(admin.router)
+app.include_router(reviews.router)
+app.include_router(cart.router)
 
 # ─── STATIC FILES SERVING ─────────────────────────────────────────
 
@@ -72,45 +66,32 @@ if ADMIN_DIR:
 else:
     print("[WARN] Admin directory not found")
 
-if FRONTEND_DIR:
-    app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
-    print(f"[MOUNT] Frontend app served at /app")
-else:
-    print("[WARN] Frontend directory not found")
-
-# ─── ROOT & FALLBACK ROUTES ───────────────────────────────────────
-
-@app.get("/")
-async def root():
-    return {
-        "message": "Kenya Marketplace API",
-        "version": "1.0.0",
-        "endpoints": {
-            "api_docs": "/docs",
-            "admin_panel": "/admin" if ADMIN_DIR else "not configured",
-            "frontend_app": "/app" if FRONTEND_DIR else "not configured"
-        }
-    }
-
-if ADMIN_DIR:
-    @app.get("/admin/{full_path:path}")
-    async def admin_fallback(full_path: str):
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="Not found")
-        index_path = os.path.join(ADMIN_DIR, "index.html")
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-        raise HTTPException(status_code=404, detail="Admin index.html not found")
+# ─── KEY FIX: Serve frontend at ROOT / instead of /app ───────────
 
 if FRONTEND_DIR:
-    @app.get("/app/{full_path:path}")
+    # Mount frontend static files at root "/" so product-detail.html works directly
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+    print(f"[MOUNT] Frontend app served at /")
+
+    # Fallback for SPA-style routing - serve index.html for unmatched routes
+    # BUT skip API routes so they don't get caught
+    @app.get("/{full_path:path}")
     async def frontend_fallback(full_path: str):
-        if full_path.startswith("api/"):
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi") or full_path == "health":
             raise HTTPException(status_code=404, detail="Not found")
+        
+        # Try to serve the exact file first
+        requested_file = os.path.join(FRONTEND_DIR, full_path)
+        if os.path.exists(requested_file) and os.path.isfile(requested_file):
+            return FileResponse(requested_file)
+        
+        # Fallback to index.html for client-side routing
         index_path = os.path.join(FRONTEND_DIR, "index.html")
         if os.path.exists(index_path):
             return FileResponse(index_path)
         raise HTTPException(status_code=404, detail="Frontend index.html not found")
+else:
+    print("[WARN] Frontend directory not found")
 
 @app.get("/health")
 async def health():
