@@ -5,173 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details - Kenya Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/responsive.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #232F3E; line-height: 1.6; }
-
-        /* ===== HEADER (matches index.html exactly) ===== */
-        .main-header {
-            background: #232F3E; color: white; padding: 10px 15px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 10px; position: sticky; top: 0; z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            background: #FF9900; color: #232F3E; padding: 8px 15px;
-            font-weight: 900; font-size: 12px; border-radius: 3px;
-            white-space: nowrap; flex-shrink: 0; line-height: 1.3;
-            text-align: center; text-decoration: none; display: block;
-        }
+        .main-header { background: #232F3E; color: white; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { background: #FF9900; color: #232F3E; padding: 8px 15px; font-weight: 900; font-size: 12px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; line-height: 1.3; text-align: center; text-decoration: none; display: block; }
         .search-bar { display: flex; flex: 1; max-width: 500px; min-width: 100px; }
         .search-bar input { flex: 1; padding: 10px; border: none; border-radius: 4px 0 0 4px; font-size: 14px; outline: none; }
         .search-bar button { padding: 10px 15px; background: #FF9900; border: none; color: #232F3E; border-radius: 0 4px 4px 0; cursor: pointer; font-size: 16px; }
-        .search-bar button:hover { background: #e68a00; }
         .menu-btn { background: #FF9900; border: none; color: #232F3E; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 18px; flex-shrink: 0; }
-        .menu-btn:hover { background: #e68a00; }
         .dropdown-menu { display: none; position: absolute; right: 15px; top: 55px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); min-width: 200px; z-index: 1001; overflow: hidden; }
         .dropdown-menu.active { display: block; }
         .dropdown-menu a { display: block; padding: 12px 20px; color: #232F3E; text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; transition: background 0.2s; }
         .dropdown-menu a:hover { background: #f5f5f5; }
         .dropdown-menu .btn-register { background: #27ae60; color: white !important; font-weight: 700; text-align: center; margin: 10px; border-radius: 4px; border: none; }
         .dropdown-menu .btn-login { background: #5dade2; color: white !important; font-weight: 600; text-align: center; margin: 10px; border-radius: 4px; border: none; }
-
-        /* ===== BREADCRUMB ===== */
-        .breadcrumb {
-            max-width: 1200px; margin: 15px auto; padding: 0 20px;
-            font-size: 14px; color: #888;
-        }
+        .breadcrumb { max-width: 1200px; margin: 15px auto; padding: 0 20px; font-size: 14px; color: #888; }
         .breadcrumb a { color: #FF9900; text-decoration: none; }
-        .breadcrumb a:hover { text-decoration: underline; }
         .breadcrumb i { margin: 0 8px; color: #ccc; }
-
-        /* ===== PRODUCT DETAIL ===== */
-        .product-detail-container {
-            max-width: 1200px; margin: 0 auto 40px; padding: 0 20px;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
-        }
-
-        .product-gallery {
-            background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #eee; overflow: hidden;
-        }
-        .main-image {
-            width: 100%; height: 450px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
+        .product-detail-container { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .product-gallery { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee; overflow: hidden; }
+        .main-image { width: 100%; height: 450px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; position: relative; }
         .main-image img { width: 100%; height: 100%; object-fit: cover; }
         .main-image .placeholder-icon { font-size: 5rem; color: #adb5bd; }
-        .image-badge {
-            position: absolute; top: 15px; left: 15px;
-            background: #FF9900; color: #232F3E; padding: 6px 14px;
-            border-radius: 3px; font-size: 12px; font-weight: 700;
-        }
-
+        .image-badge { position: absolute; top: 15px; left: 15px; background: #FF9900; color: #232F3E; padding: 6px 14px; border-radius: 3px; font-size: 12px; font-weight: 700; }
         .product-info-detail { padding: 0; }
-        .product-category-tag {
-            display: inline-block; background: #FF9900; color: #232F3E;
-            padding: 4px 12px; border-radius: 3px; font-size: 12px;
-            font-weight: 700; text-transform: uppercase; margin-bottom: 12px;
-        }
-        .product-title {
-            font-size: 1.8rem; font-weight: 800; color: #232F3E;
-            margin-bottom: 10px; line-height: 1.3;
-        }
-        .product-rating {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
-            color: #FF9900; font-size: 14px;
-        }
+        .product-category-tag { display: inline-block; background: #FF9900; color: #232F3E; padding: 4px 12px; border-radius: 3px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
+        .product-title { font-size: 1.8rem; font-weight: 800; color: #232F3E; margin-bottom: 10px; line-height: 1.3; }
+        .product-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; color: #FF9900; font-size: 14px; }
         .product-rating span { color: #888; }
-        .product-price-detail {
-            font-size: 2rem; font-weight: 800; color: #232F3E;
-            margin-bottom: 20px;
-        }
-        .product-price-detail .original {
-            font-size: 1.2rem; color: #888; text-decoration: line-through;
-            font-weight: 400; margin-left: 10px;
-        }
-        .product-description {
-            font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 25px;
-            padding-bottom: 20px; border-bottom: 1px solid #eee;
-        }
-
-        .product-meta-detail {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
-            margin-bottom: 25px;
-        }
-        .meta-item {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 14px; color: #555;
-        }
+        .product-price-detail { font-size: 2rem; font-weight: 800; color: #232F3E; margin-bottom: 20px; }
+        .product-description { font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .product-meta-detail { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .meta-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #555; }
         .meta-item i { color: #FF9900; font-size: 16px; width: 20px; }
         .meta-item .label { font-weight: 600; color: #232F3E; }
-
-        .stock-status {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 16px; border-radius: 4px; font-size: 14px;
-            font-weight: 600; margin-bottom: 20px;
-        }
+        .stock-status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
         .stock-status.in { background: #d4edda; color: #155724; }
         .stock-status.low { background: #fff3cd; color: #856404; }
         .stock-status.out { background: #f8d7da; color: #721c24; }
-
-        .quantity-selector {
-            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
-        }
+        .quantity-selector { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .quantity-selector label { font-weight: 600; font-size: 14px; }
-        .qty-control-detail {
-            display: flex; align-items: center; border: 1px solid #ddd;
-            border-radius: 4px; overflow: hidden;
-        }
-        .qty-control-detail button {
-            background: #f5f5f5; border: none; width: 40px; height: 40px;
-            cursor: pointer; font-size: 16px; color: #232F3E; transition: background 0.2s;
-        }
-        .qty-control-detail button:hover { background: #e5e5e5; }
+        .qty-control-detail { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+        .qty-control-detail button { background: #f5f5f5; border: none; width: 40px; height: 40px; cursor: pointer; font-size: 16px; color: #232F3E; }
         .qty-control-detail button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .qty-control-detail input {
-            width: 60px; text-align: center; border: none; border-left: 1px solid #ddd;
-            border-right: 1px solid #ddd; font-size: 16px; font-weight: 600; height: 40px;
-            outline: none;
-        }
-
-        .action-buttons {
-            display: flex; gap: 12px; flex-wrap: wrap;
-        }
-        .btn-add-cart-detail {
-            flex: 1; min-width: 200px; background: #FF9900; color: #232F3E;
-            border: none; padding: 16px 30px; border-radius: 4px; cursor: pointer;
-            font-size: 1rem; font-weight: 700; display: flex; align-items: center;
-            justify-content: center; gap: 10px; transition: background 0.2s;
-        }
-        .btn-add-cart-detail:hover { background: #e68a00; }
+        .qty-control-detail input { width: 60px; text-align: center; border: none; border-left: 1px solid #ddd; border-right: 1px solid #ddd; font-size: 16px; font-weight: 600; height: 40px; outline: none; }
+        .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-add-cart-detail { flex: 1; min-width: 200px; background: #FF9900; color: #232F3E; border: none; padding: 16px 30px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-add-cart-detail:disabled { background: #ccc; color: #666; cursor: not-allowed; }
-        .btn-wishlist-detail {
-            width: 56px; height: 56px; border: 2px solid #ddd; background: white;
-            border-radius: 4px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: #888; font-size: 20px; transition: all 0.2s;
-        }
-        .btn-wishlist-detail:hover { border-color: #e74c3c; color: #e74c3c; }
+        .btn-wishlist-detail { width: 56px; height: 56px; border: 2px solid #ddd; background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #888; font-size: 20px; }
         .btn-wishlist-detail.active { border-color: #e74c3c; color: #e74c3c; background: #fdeaea; }
-
-        /* ===== RELATED PRODUCTS ===== */
-        .related-section {
-            max-width: 1200px; margin: 0 auto 40px; padding: 0 20px;
-        }
-        .related-section h2 {
-            font-size: 1.4rem; color: #232F3E; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .related-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
-        }
-        .related-card {
-            background: white; border-radius: 8px; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee;
-            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; text-decoration: none;
-            color: inherit; display: block;
-        }
+        .related-section { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; }
+        .related-section h2 { font-size: 1.4rem; color: #232F3E; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .related-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee; transition: transform 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
         .related-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
         .related-image { width: 100%; height: 160px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; }
         .related-image img { width: 100%; height: 100%; object-fit: cover; }
@@ -179,45 +66,16 @@
         .related-info { padding: 12px; }
         .related-name { font-size: 14px; font-weight: 700; color: #232F3E; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .related-price { font-size: 16px; font-weight: 800; color: #FF9900; }
-
-        /* ===== LOADING / ERROR ===== */
-        .loading-detail, .error-detail, .not-found {
-            text-align: center; padding: 80px 20px; grid-column: 1 / -1;
-        }
+        .loading-detail, .error-detail, .not-found { text-align: center; padding: 80px 20px; grid-column: 1 / -1; }
         .loading-detail i { font-size: 3rem; color: #FF9900; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .error-detail { color: #e74c3c; }
-        .error-detail button { margin-top: 15px; padding: 10px 20px; background: #FF9900; color: #232F3E; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; }
         .not-found i { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
-
-        /* ===== TOAST ===== */
         .toast { position: fixed; bottom: 25px; right: 25px; background: #232F3E; color: white; padding: 12px 18px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 2000; font-size: 14px; }
         .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { border-left: 4px solid #27ae60; }
-        .toast.error { border-left: 4px solid #e74c3c; }
-
-        /* ===== FOOTER ===== */
         footer { background: #232F3E; color: white; text-align: center; padding: 20px; margin-top: 40px; font-size: 0.9rem; }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 900px) {
-            .product-detail-container { grid-template-columns: 1fr; gap: 25px; }
-            .main-image { height: 350px; }
-        }
-        @media (max-width: 600px) {
-            .product-title { font-size: 1.4rem; }
-            .product-price-detail { font-size: 1.6rem; }
-            .main-image { height: 280px; }
-            .action-buttons { flex-direction: column; }
-            .btn-add-cart-detail { width: 100%; }
-        }
-        @media (max-width: 480px) {
-            .main-header { padding: 8px 10px; }
-            .logo { font-size: 10px; padding: 6px 10px; }
-            .product-meta-detail { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 900px) { .product-detail-container { grid-template-columns: 1fr; gap: 25px; } .main-image { height: 350px; } }
+        @media (max-width: 600px) { .product-title { font-size: 1.4rem; } .product-price-detail { font-size: 1.6rem; } .main-image { height: 280px; } .action-buttons { flex-direction: column; } .btn-add-cart-detail { width: 100%; } }
     </style>
-<base target="_blank">
 </head>
 <body>
     <header class="main-header">
@@ -237,7 +95,7 @@
         </div>
     </header>
 
-    <div class="breadcrumb" id="breadcrumb">
+    <div class="breadcrumb">
         <a href="index.html">Home</a> <i class="fas fa-chevron-right"></i>
         <a href="products.html">Products</a> <i class="fas fa-chevron-right"></i>
         <span id="breadcrumb-name">Loading...</span>
@@ -259,6 +117,6 @@
 
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toast-message">Item added to cart!</span></div>
 
-    <script src="js/product-detail.js?v=2"></script>
-</body>
-</html>
+    <script>
+        const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
+n        let currentProduct = null;\n        let cart = JSON.parse(localStorage.getItem('cart')) || [];\n        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];\n        let quantity = 1;\n\n        document.addEventListener('DOMContentLoaded', () => {\n            const urlParams = new URLSearchParams(window.location.search);\n            const productId = urlParams.get('id');\n            if (!productId) { showNotFound(); return; }\n            loadProduct(productId);\n            updateNavCartCount();\n            document.getElementById('search-btn').addEventListener('click', () => {\n                const q = document.getElementById('search-input').value.trim();\n                if (q) window.location.href = 'products.html?search=' + encodeURIComponent(q);\n            });\n        });\n\n        function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('active'); }\n        document.addEventListener('click', function(e) {\n            const menu = document.getElementById('dropdownMenu');\n            const btn = document.querySelector('.menu-btn');\n            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('active');\n        });\n\n        async function loadProduct(productId) {\n            try {\n                const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);\n                if (!response.ok) { if (response.status === 404) { showNotFound(); return; } throw new Error(`HTTP ${response.status}`); }\n                const product = await response.json();\n                currentProduct = product;\n                renderProduct(product);\n                loadRelated(product);\n            } catch (error) {\n                document.getElementById('product-detail').innerHTML = `<div class="error-detail" style="grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #e74c3c;"></i><h3>Failed to load product</h3><p>${error.message}</p></div>`;\n            }\n        }\n\n        function renderProduct(product) {\n            const imageUrl = product.image_url || product.image || '';\n            const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';\n            const stockClass = product.stock <= 5 ? 'low' : (product.stock === 0 ? 'out' : 'in');\n            const stockText = product.stock === 0 ? 'Out of Stock' : (product.stock <= 5 ? `Only ${product.stock} left` : `In Stock (${product.stock} available)`);\n            const isWishlisted = wishlist.includes(product.id);\n            document.getElementById('breadcrumb-name').textContent = product.name;\n            document.title = product.name + ' - Kenya Marketplace';\n            document.getElementById('product-detail').innerHTML = `\n                <div class="product-gallery">\n                    <div class="main-image">\n                        ${hasImage ? `<img src="${imageUrl}" alt="${product.name}">` : `<i class="fas fa-image placeholder-icon"></i>`}\n                        ${product.stock <= 5 && product.stock > 0 ? '<span class="image-badge">Low Stock</span>' : ''}\n                    </div>\n                </div>\n                <div class="product-info-detail">\n                    <span class="product-category-tag">${product.category || 'General'}</span>\n                    <h1 class="product-title">${product.name}</h1>\n                    <div class="product-rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.5 (12 reviews)</span></div>\n                    <div class="product-price-detail">KES ${Number(product.price).toLocaleString()}</div>\n                    <div class="product-description">${product.description || 'No description available for this product.'}</div>\n                    <div class="product-meta-detail">\n                        <div class="meta-item"><i class="fas fa-box"></i><div><span class="label">Category:</span> ${product.category || 'General'}</div></div>\n                        <div class="meta-item"><i class="fas fa-tag"></i><div><span class="label">SKU:</span> PROD-${product.id.toString().padStart(4, '0')}</div></div>\n                        <div class="meta-item"><i class="fas fa-truck"></i><div><span class="label">Delivery:</span> 1-3 days</div></div>\n                        <div class="meta-item"><i class="fas fa-undo"></i><div><span class="label">Returns:</span> 7 days</div></div>\n                    </div>\n                    <div class="stock-status ${stockClass}"><i class="fas fa-circle" style="font-size: 8px;"></i> ${stockText}</div>\n                    <div class="quantity-selector">\n                        <label>Quantity:</label>\n                        <div class="qty-control-detail">\n                            <button onclick="changeQty(-1)" ${quantity <= 1 ? 'disabled' : ''}><i class="fas fa-minus"></i></button>\n                            <input type="number" id="qty-input" value="1" min="1" max="${product.stock}" onchange="setQty(this.value)">\n                            <button onclick="changeQty(1)" ${quantity >= product.stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>\n                        </div>\n                    </div>\n                    <div class="action-buttons">\n                        <button class="btn-add-cart-detail" onclick="addToCart()" ${product.stock === 0 ? 'disabled' : ''}><i class="fas fa-cart-plus"></i> Add to Cart</button>\n                        <button class="btn-wishlist-detail ${isWishlisted ? 'active' : ''}" onclick="toggleWishlist()"><i class="${isWishlisted ? 'fas' : 'far'} fa-heart"></i></button>\n                    </div>\n                </div>`;\n        }\n\n        function changeQty(delta) {\n            if (!currentProduct) return;\n            const newQty = quantity + delta;\n            if (newQty < 1 || newQty > currentProduct.stock) return;\n            quantity = newQty;\n            document.getElementById('qty-input').value = quantity;\n            const buttons = document.querySelectorAll('.qty-control-detail button');\n            buttons[0].disabled = quantity <= 1;\n            buttons[1].disabled = quantity >= currentProduct.stock;\n        }\n\n        function setQty(val) {\n            if (!currentProduct) return;\n            let newQty = parseInt(val) || 1;\n            if (newQty < 1) newQty = 1;\n            if (newQty > currentProduct.stock) newQty = currentProduct.stock;\n            quantity = newQty;\n            document.getElementById('qty-input').value = quantity;\n            const buttons = document.querySelectorAll('.qty-control-detail button');\n            buttons[0].disabled = quantity <= 1;\n            buttons[1].disabled = quantity >= currentProduct.stock;\n        }\n\n        function addToCart() {\n            if (!currentProduct || currentProduct.stock === 0) return;\n            const existing = cart.find(item => item.id === currentProduct.id);\n            if (existing) {\n                if (existing.quantity + quantity <= currentProduct.stock) { existing.quantity += quantity; showToast(`${quantity} more added!`, 'success'); }\n                else { showToast('Maximum stock reached!', 'error'); return; }\n            } else {\n                cart.push({ id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, image: currentProduct.image_url || currentProduct.image || '', quantity: quantity });\n                showToast('Added to cart!', 'success');\n            }\n            localStorage.setItem('cart', JSON.stringify(cart));\n            updateNavCartCount();\n        }\n\n        function toggleWishlist() {\n            if (!currentProduct) return;\n            const index = wishlist.indexOf(currentProduct.id);\n            const btn = document.querySelector('.btn-wishlist-detail');\n            const icon = btn.querySelector('i');\n            if (index > -1) { wishlist.splice(index, 1); btn.classList.remove('active'); icon.classList.remove('fas'); icon.classList.add('far'); showToast('Removed from wishlist', 'success'); }\n            else { wishlist.push(currentProduct.id); btn.classList.add('active'); icon.classList.remove('far'); icon.classList.add('fas'); showToast('Added to wishlist', 'success'); }\n            localStorage.setItem('wishlist', JSON.stringify(wishlist));\n        }\n\n        async function loadRelated(currentProduct) {\n            try {\n                const response = await fetch(`${API_BASE_URL}/api/products/`);\n                if (!response.ok) return;\n                const products = await response.json();\n                const related = products.filter(p => p.id !== currentProduct.id && p.category === currentProduct.category).slice(0, 4);\n                if (related.length === 0) { const fallback = products.filter(p => p.id !== currentProduct.id).slice(0, 4); if (fallback.length === 0) return; renderRelated(fallback); }\n                else renderRelated(related);\n            } catch (error) { console.error('Error:', error); }\n        }\n\n        function renderRelated(products) {\n            document.getElementById('related-section').style.display = 'block';\n            document.getElementById('related-grid').innerHTML = products.map(product => {\n                const imageUrl = product.image_url || product.image || '';\n                const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';\n                return `<a href="product-detail.html?id=${product.id}" class="related-card"><div class="related-image">${hasImage ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy">` : `<i class="fas fa-image placeholder-icon"></i>`}</div><div class="related-info"><div class="related-name">${product.name}</div><div class="related-price">KES ${Number(product.price).toLocaleString()}</div></div></a>`;\n            }).join('');\n        }\n\n        function showNotFound() {\n            document.getElementById('product-detail').innerHTML = `<div class="not-found" style="grid-column: 1 / -1;"><i class="fas fa-search" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i><h2>Product Not Found</h2><p style="color: #888; margin-bottom: 25px;">The product you're looking for doesn't exist.</p><a href="products.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 40px; background: #FF9900; color: #232F3E; text-decoration: none; border-radius: 4px; font-size: 1rem; font-weight: 700;"><i class="fas fa-arrow-left"></i> Browse Products</a></div>`;\n            document.getElementById('breadcrumb-name').textContent = 'Not Found';\n        }\n\n        function updateNavCartCount() {\n            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);\n            document.getElementById('nav-cart-count').textContent = totalItems;\n        }\n\n        function showToast(message, type) {\n            const toast = document.getElementById('toast');\n            const toastMessage = document.getElementById('toast-message');\n            toastMessage.textContent = message;\n            toast.className = `toast ${type} show`;\n            setTimeout(() => { toast.classList.remove('show'); }, 3000);\n        }\n    </script>\n</body>\n</html>
