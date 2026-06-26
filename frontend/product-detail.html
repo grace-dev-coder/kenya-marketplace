@@ -76,6 +76,7 @@
         @media (max-width: 900px) { .product-detail-container { grid-template-columns: 1fr; gap: 25px; } .main-image { height: 350px; } }
         @media (max-width: 600px) { .product-title { font-size: 1.4rem; } .product-price-detail { font-size: 1.6rem; } .main-image { height: 280px; } .action-buttons { flex-direction: column; } .btn-add-cart-detail { width: 100%; } }
     </style>
+<base target="_blank">
 </head>
 <body>
     <header class="main-header">
@@ -119,4 +120,209 @@
 
     <script>
         const API_BASE_URL = 'https://kenya-marketplace-api.onrender.com';
-n        let currentProduct = null;\n        let cart = JSON.parse(localStorage.getItem('cart')) || [];\n        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];\n        let quantity = 1;\n\n        document.addEventListener('DOMContentLoaded', () => {\n            const urlParams = new URLSearchParams(window.location.search);\n            const productId = urlParams.get('id');\n            if (!productId) { showNotFound(); return; }\n            loadProduct(productId);\n            updateNavCartCount();\n            document.getElementById('search-btn').addEventListener('click', () => {\n                const q = document.getElementById('search-input').value.trim();\n                if (q) window.location.href = 'products.html?search=' + encodeURIComponent(q);\n            });\n        });\n\n        function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('active'); }\n        document.addEventListener('click', function(e) {\n            const menu = document.getElementById('dropdownMenu');\n            const btn = document.querySelector('.menu-btn');\n            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('active');\n        });\n\n        async function loadProduct(productId) {\n            try {\n                const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);\n                if (!response.ok) { if (response.status === 404) { showNotFound(); return; } throw new Error(`HTTP ${response.status}`); }\n                const product = await response.json();\n                currentProduct = product;\n                renderProduct(product);\n                loadRelated(product);\n            } catch (error) {\n                document.getElementById('product-detail').innerHTML = `<div class="error-detail" style="grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #e74c3c;"></i><h3>Failed to load product</h3><p>${error.message}</p></div>`;\n            }\n        }\n\n        function renderProduct(product) {\n            const imageUrl = product.image_url || product.image || '';\n            const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';\n            const stockClass = product.stock <= 5 ? 'low' : (product.stock === 0 ? 'out' : 'in');\n            const stockText = product.stock === 0 ? 'Out of Stock' : (product.stock <= 5 ? `Only ${product.stock} left` : `In Stock (${product.stock} available)`);\n            const isWishlisted = wishlist.includes(product.id);\n            document.getElementById('breadcrumb-name').textContent = product.name;\n            document.title = product.name + ' - Kenya Marketplace';\n            document.getElementById('product-detail').innerHTML = `\n                <div class="product-gallery">\n                    <div class="main-image">\n                        ${hasImage ? `<img src="${imageUrl}" alt="${product.name}">` : `<i class="fas fa-image placeholder-icon"></i>`}\n                        ${product.stock <= 5 && product.stock > 0 ? '<span class="image-badge">Low Stock</span>' : ''}\n                    </div>\n                </div>\n                <div class="product-info-detail">\n                    <span class="product-category-tag">${product.category || 'General'}</span>\n                    <h1 class="product-title">${product.name}</h1>\n                    <div class="product-rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.5 (12 reviews)</span></div>\n                    <div class="product-price-detail">KES ${Number(product.price).toLocaleString()}</div>\n                    <div class="product-description">${product.description || 'No description available for this product.'}</div>\n                    <div class="product-meta-detail">\n                        <div class="meta-item"><i class="fas fa-box"></i><div><span class="label">Category:</span> ${product.category || 'General'}</div></div>\n                        <div class="meta-item"><i class="fas fa-tag"></i><div><span class="label">SKU:</span> PROD-${product.id.toString().padStart(4, '0')}</div></div>\n                        <div class="meta-item"><i class="fas fa-truck"></i><div><span class="label">Delivery:</span> 1-3 days</div></div>\n                        <div class="meta-item"><i class="fas fa-undo"></i><div><span class="label">Returns:</span> 7 days</div></div>\n                    </div>\n                    <div class="stock-status ${stockClass}"><i class="fas fa-circle" style="font-size: 8px;"></i> ${stockText}</div>\n                    <div class="quantity-selector">\n                        <label>Quantity:</label>\n                        <div class="qty-control-detail">\n                            <button onclick="changeQty(-1)" ${quantity <= 1 ? 'disabled' : ''}><i class="fas fa-minus"></i></button>\n                            <input type="number" id="qty-input" value="1" min="1" max="${product.stock}" onchange="setQty(this.value)">\n                            <button onclick="changeQty(1)" ${quantity >= product.stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>\n                        </div>\n                    </div>\n                    <div class="action-buttons">\n                        <button class="btn-add-cart-detail" onclick="addToCart()" ${product.stock === 0 ? 'disabled' : ''}><i class="fas fa-cart-plus"></i> Add to Cart</button>\n                        <button class="btn-wishlist-detail ${isWishlisted ? 'active' : ''}" onclick="toggleWishlist()"><i class="${isWishlisted ? 'fas' : 'far'} fa-heart"></i></button>\n                    </div>\n                </div>`;\n        }\n\n        function changeQty(delta) {\n            if (!currentProduct) return;\n            const newQty = quantity + delta;\n            if (newQty < 1 || newQty > currentProduct.stock) return;\n            quantity = newQty;\n            document.getElementById('qty-input').value = quantity;\n            const buttons = document.querySelectorAll('.qty-control-detail button');\n            buttons[0].disabled = quantity <= 1;\n            buttons[1].disabled = quantity >= currentProduct.stock;\n        }\n\n        function setQty(val) {\n            if (!currentProduct) return;\n            let newQty = parseInt(val) || 1;\n            if (newQty < 1) newQty = 1;\n            if (newQty > currentProduct.stock) newQty = currentProduct.stock;\n            quantity = newQty;\n            document.getElementById('qty-input').value = quantity;\n            const buttons = document.querySelectorAll('.qty-control-detail button');\n            buttons[0].disabled = quantity <= 1;\n            buttons[1].disabled = quantity >= currentProduct.stock;\n        }\n\n        function addToCart() {\n            if (!currentProduct || currentProduct.stock === 0) return;\n            const existing = cart.find(item => item.id === currentProduct.id);\n            if (existing) {\n                if (existing.quantity + quantity <= currentProduct.stock) { existing.quantity += quantity; showToast(`${quantity} more added!`, 'success'); }\n                else { showToast('Maximum stock reached!', 'error'); return; }\n            } else {\n                cart.push({ id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, image: currentProduct.image_url || currentProduct.image || '', quantity: quantity });\n                showToast('Added to cart!', 'success');\n            }\n            localStorage.setItem('cart', JSON.stringify(cart));\n            updateNavCartCount();\n        }\n\n        function toggleWishlist() {\n            if (!currentProduct) return;\n            const index = wishlist.indexOf(currentProduct.id);\n            const btn = document.querySelector('.btn-wishlist-detail');\n            const icon = btn.querySelector('i');\n            if (index > -1) { wishlist.splice(index, 1); btn.classList.remove('active'); icon.classList.remove('fas'); icon.classList.add('far'); showToast('Removed from wishlist', 'success'); }\n            else { wishlist.push(currentProduct.id); btn.classList.add('active'); icon.classList.remove('far'); icon.classList.add('fas'); showToast('Added to wishlist', 'success'); }\n            localStorage.setItem('wishlist', JSON.stringify(wishlist));\n        }\n\n        async function loadRelated(currentProduct) {\n            try {\n                const response = await fetch(`${API_BASE_URL}/api/products/`);\n                if (!response.ok) return;\n                const products = await response.json();\n                const related = products.filter(p => p.id !== currentProduct.id && p.category === currentProduct.category).slice(0, 4);\n                if (related.length === 0) { const fallback = products.filter(p => p.id !== currentProduct.id).slice(0, 4); if (fallback.length === 0) return; renderRelated(fallback); }\n                else renderRelated(related);\n            } catch (error) { console.error('Error:', error); }\n        }\n\n        function renderRelated(products) {\n            document.getElementById('related-section').style.display = 'block';\n            document.getElementById('related-grid').innerHTML = products.map(product => {\n                const imageUrl = product.image_url || product.image || '';\n                const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';\n                return `<a href="product-detail.html?id=${product.id}" class="related-card"><div class="related-image">${hasImage ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy">` : `<i class="fas fa-image placeholder-icon"></i>`}</div><div class="related-info"><div class="related-name">${product.name}</div><div class="related-price">KES ${Number(product.price).toLocaleString()}</div></div></a>`;\n            }).join('');\n        }\n\n        function showNotFound() {\n            document.getElementById('product-detail').innerHTML = `<div class="not-found" style="grid-column: 1 / -1;"><i class="fas fa-search" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i><h2>Product Not Found</h2><p style="color: #888; margin-bottom: 25px;">The product you're looking for doesn't exist.</p><a href="products.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 40px; background: #FF9900; color: #232F3E; text-decoration: none; border-radius: 4px; font-size: 1rem; font-weight: 700;"><i class="fas fa-arrow-left"></i> Browse Products</a></div>`;\n            document.getElementById('breadcrumb-name').textContent = 'Not Found';\n        }\n\n        function updateNavCartCount() {\n            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);\n            document.getElementById('nav-cart-count').textContent = totalItems;\n        }\n\n        function showToast(message, type) {\n            const toast = document.getElementById('toast');\n            const toastMessage = document.getElementById('toast-message');\n            toastMessage.textContent = message;\n            toast.className = `toast ${type} show`;\n            setTimeout(() => { toast.classList.remove('show'); }, 3000);\n        }\n    </script>\n</body>\n</html>
+        let currentProduct = null;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        let quantity = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            if (!productId) { showNotFound(); return; }
+            loadProduct(productId);
+            updateNavCartCount();
+            document.getElementById('search-btn').addEventListener('click', () => {
+                const q = document.getElementById('search-input').value.trim();
+                if (q) window.location.href = 'products.html?search=' + encodeURIComponent(q);
+            });
+        });
+
+        function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('active'); }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('dropdownMenu');
+            const btn = document.querySelector('.menu-btn');
+            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('active');
+        });
+
+        async function loadProduct(productId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
+                if (!response.ok) { 
+                    if (response.status === 404) { showNotFound(); return; } 
+                    throw new Error(`HTTP ${response.status}`); 
+                }
+                const product = await response.json();
+                currentProduct = product;
+                renderProduct(product);
+                loadRelated(product);
+            } catch (error) {
+                document.getElementById('product-detail').innerHTML = `
+                    <div class="error-detail" style="grid-column: 1 / -1;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #e74c3c;"></i>
+                        <h3>Failed to load product</h3>
+                        <p>${error.message}</p>
+                    </div>`;
+            }
+        }
+
+        function renderProduct(product) {
+            const imageUrl = product.image_url || product.image || '';
+            const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';
+            const stockClass = product.stock <= 5 ? 'low' : (product.stock === 0 ? 'out' : 'in');
+            const stockText = product.stock === 0 ? 'Out of Stock' : (product.stock <= 5 ? `Only ${product.stock} left` : `In Stock (${product.stock} available)`);
+            const isWishlisted = wishlist.includes(product.id);
+            document.getElementById('breadcrumb-name').textContent = product.name;
+            document.title = product.name + ' - Kenya Marketplace';
+            document.getElementById('product-detail').innerHTML = `
+                <div class="product-gallery">
+                    <div class="main-image">
+                        ${hasImage ? `<img src="${imageUrl}" alt="${product.name}">` : `<i class="fas fa-image placeholder-icon"></i>`}
+                        ${product.stock <= 5 && product.stock > 0 ? '<span class="image-badge">Low Stock</span>' : ''}
+                    </div>
+                </div>
+                <div class="product-info-detail">
+                    <span class="product-category-tag">${product.category || 'General'}</span>
+                    <h1 class="product-title">${product.name}</h1>
+                    <div class="product-rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.5 (12 reviews)</span></div>
+                    <div class="product-price-detail">KES ${Number(product.price).toLocaleString()}</div>
+                    <div class="product-description">${product.description || 'No description available for this product.'}</div>
+                    <div class="product-meta-detail">
+                        <div class="meta-item"><i class="fas fa-box"></i><div><span class="label">Category:</span> ${product.category || 'General'}</div></div>
+                        <div class="meta-item"><i class="fas fa-tag"></i><div><span class="label">SKU:</span> PROD-${product.id.toString().padStart(4, '0')}</div></div>
+                        <div class="meta-item"><i class="fas fa-truck"></i><div><span class="label">Delivery:</span> 1-3 days</div></div>
+                        <div class="meta-item"><i class="fas fa-undo"></i><div><span class="label">Returns:</span> 7 days</div></div>
+                    </div>
+                    <div class="stock-status ${stockClass}"><i class="fas fa-circle" style="font-size: 8px;"></i> ${stockText}</div>
+                    <div class="quantity-selector">
+                        <label>Quantity:</label>
+                        <div class="qty-control-detail">
+                            <button onclick="changeQty(-1)" ${quantity <= 1 ? 'disabled' : ''}><i class="fas fa-minus"></i></button>
+                            <input type="number" id="qty-input" value="1" min="1" max="${product.stock}" onchange="setQty(this.value)">
+                            <button onclick="changeQty(1)" ${quantity >= product.stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-add-cart-detail" onclick="addToCart()" ${product.stock === 0 ? 'disabled' : ''}><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                        <button class="btn-wishlist-detail ${isWishlisted ? 'active' : ''}" onclick="toggleWishlist()"><i class="${isWishlisted ? 'fas' : 'far'} fa-heart"></i></button>
+                    </div>
+                </div>`;
+        }
+
+        function changeQty(delta) {
+            if (!currentProduct) return;
+            const newQty = quantity + delta;
+            if (newQty < 1 || newQty > currentProduct.stock) return;
+            quantity = newQty;
+            document.getElementById('qty-input').value = quantity;
+            const buttons = document.querySelectorAll('.qty-control-detail button');
+            buttons[0].disabled = quantity <= 1;
+            buttons[1].disabled = quantity >= currentProduct.stock;
+        }
+
+        function setQty(val) {
+            if (!currentProduct) return;
+            let newQty = parseInt(val) || 1;
+            if (newQty < 1) newQty = 1;
+            if (newQty > currentProduct.stock) newQty = currentProduct.stock;
+            quantity = newQty;
+            document.getElementById('qty-input').value = quantity;
+            const buttons = document.querySelectorAll('.qty-control-detail button');
+            buttons[0].disabled = quantity <= 1;
+            buttons[1].disabled = quantity >= currentProduct.stock;
+        }
+
+        function addToCart() {
+            if (!currentProduct || currentProduct.stock === 0) return;
+            const existing = cart.find(item => item.id === currentProduct.id);
+            if (existing) {
+                if (existing.quantity + quantity <= currentProduct.stock) { 
+                    existing.quantity += quantity; 
+                    showToast(`${quantity} more added!`, 'success'); 
+                }
+                else { showToast('Maximum stock reached!', 'error'); return; }
+            } else {
+                cart.push({ 
+                    id: currentProduct.id, 
+                    name: currentProduct.name, 
+                    price: currentProduct.price, 
+                    image: currentProduct.image_url || currentProduct.image || '', 
+                    quantity: quantity 
+                });
+                showToast('Added to cart!', 'success');
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateNavCartCount();
+        }
+
+        function toggleWishlist() {
+            if (!currentProduct) return;
+            const index = wishlist.indexOf(currentProduct.id);
+            const btn = document.querySelector('.btn-wishlist-detail');
+            const icon = btn.querySelector('i');
+            if (index > -1) { 
+                wishlist.splice(index, 1); 
+                btn.classList.remove('active'); 
+                icon.classList.remove('fas'); 
+                icon.classList.add('far'); 
+                showToast('Removed from wishlist', 'success'); 
+            }
+            else { 
+                wishlist.push(currentProduct.id); 
+                btn.classList.add('active'); 
+                icon.classList.remove('far'); 
+                icon.classList.add('fas'); 
+                showToast('Added to wishlist', 'success'); 
+            }
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        }
+
+        async function loadRelated(currentProduct) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/products/`);
+                if (!response.ok) return;
+                const products = await response.json();
+                const related = products.filter(p => p.id !== currentProduct.id && p.category === currentProduct.category).slice(0, 4);
+                if (related.length === 0) { 
+                    const fallback = products.filter(p => p.id !== currentProduct.id).slice(0, 4); 
+                    if (fallback.length === 0) return; 
+                    renderRelated(fallback); 
+                }
+                else renderRelated(related);
+            } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderRelated(products) {
+            document.getElementById('related-section').style.display = 'block';
+            document.getElementById('related-grid').innerHTML = products.map(product => {
+                const imageUrl = product.image_url || product.image || '';
+                const hasImage = imageUrl && !imageUrl.includes('placeholder') && imageUrl.trim() !== '';
+                return `<a href="product-detail.html?id=${product.id}" class="related-card"><div class="related-image">${hasImage ? `<img src="${imageUrl}" alt="${product.name}" loading="lazy">` : `<i class="fas fa-image placeholder-icon"></i>`}</div><div class="related-info"><div class="related-name">${product.name}</div><div class="related-price">KES ${Number(product.price).toLocaleString()}</div></div></a>`;
+            }).join('');
+        }
+
+        function showNotFound() {
+            document.getElementById('product-detail').innerHTML = `
+                <div class="not-found" style="grid-column: 1 / -1;">
+                    <i class="fas fa-search" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                    <h2>Product Not Found</h2>
+                    <p style="color: #888; margin-bottom: 25px;">The product you're looking for doesn't exist.</p>
+                    <a href="products.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 40px; background: #FF9900; color: #232F3E; text-decoration: none; border-radius: 4px; font-size: 1rem; font-weight: 700;"><i class="fas fa-arrow-left"></i> Browse Products</a>
+                </div>`;
+            document.getElementById('breadcrumb-name').textContent = 'Not Found';
+        }
+
+        function updateNavCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('nav-cart-count').textContent = totalItems;
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+    </script>
+</body>
+</html>
