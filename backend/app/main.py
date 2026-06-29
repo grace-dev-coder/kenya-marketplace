@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Import routers
+# Import routers FIRST (before static file serving)
 from app.routers import auth, products, orders, payments, vendors, admin, reviews, cart
 app.include_router(auth.router)
 app.include_router(products.router)
@@ -60,36 +60,42 @@ for path in possible_paths:
     if ADMIN_DIR and FRONTEND_DIR:
         break
 
+# Mount admin at /admin (no conflict with API)
 if ADMIN_DIR:
     app.mount("/admin", StaticFiles(directory=ADMIN_DIR, html=True), name="admin")
     print(f"[MOUNT] Admin panel served at /admin")
 else:
     print("[WARN] Admin directory not found")
 
-# ─── KEY FIX: Serve frontend at ROOT / instead of /app ───────────
+# ─── SERVE FRONTEND WITH EXPLICIT ROUTE (not StaticFiles mount at /) ──────────
+# StaticFiles mounted at / would catch ALL requests including /api/* and /docs
+# We use an explicit route instead so API routes are checked first
 
 if FRONTEND_DIR:
-    # Mount frontend static files at root "/" so product-detail.html works directly
-    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
-    print(f"[MOUNT] Frontend app served at /")
+    print(f"[MOUNT] Frontend will be served from {FRONTEND_DIR}")
 
-    # Fallback for SPA-style routing - serve index.html for unmatched routes
-    # BUT skip API routes so they don't get caught
-    @app.get("/{full_path:path}")
-    async def frontend_fallback(full_path: str):
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi") or full_path == "health":
+    @app.get("/{file_path:path}")
+    async def serve_frontend(file_path: str, request: Request):
+        # NEVER serve API routes, docs, or health through this fallback
+        if file_path.startswith("api/") or file_path.startswith("docs") or file_path.startswith("openapi") or file_path == "health":
             raise HTTPException(status_code=404, detail="Not found")
-        
-        # Try to serve the exact file first
-        requested_file = os.path.join(FRONTEND_DIR, full_path)
-        if os.path.exists(requested_file) and os.path.isfile(requested_file):
-            return FileResponse(requested_file)
-        
-        # Fallback to index.html for client-side routing
-        index_path = os.path.join(FRONTEND_DIR, "index.html")
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-        raise HTTPException(status_code=404, detail="Frontend index.html not found")
+
+        # Build the file path securely
+        safe_path = os.path.normpath(os.path.join(FRONTEND_DIR, file_path))
+
+        # Security: prevent directory traversal attacks
+        if not safe_path.startswith(os.path.normpath(FRONTEND_DIR)):
+            raise HTTPException(status_code=403, detail="Forbidden")
+
+        # If requesting a directory or non-existent file, serve index.html (SPA fallback)
+        if os.path.isdir(safe_path) or not os.path.exists(safe_path):
+            index_path = os.path.join(FRONTEND_DIR, "index.html")
+            if os.path.exists(index_path):
+                return FileResponse(index_path)
+            raise HTTPException(status_code=404, detail="Frontend index.html not found")
+
+        # Serve the requested file
+        return FileResponse(safe_path)
 else:
     print("[WARN] Frontend directory not found")
 
